@@ -1,0 +1,16 @@
+# Render-Blueprint für Zync (https://render.com) – Test-Hosting.
+# Achtung: Im Gratis-Tarif ist der Speicher nicht dauerhaft – Accounts und Nachrichten
+# gehen bei jedem Neustart verloren.
+services:
+  - type: web
+    name: zync
+    runtime: node
+    plan: free
+    rootDir: zync
+    buildCommand: npm install --prefix server && npm install --prefix client --include=dev && npm run build --prefix client
+    startCommand: npm start --prefix server
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: ZYNC_TRUST_PROXY
+        value: "1"

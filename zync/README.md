@@ -55,7 +55,7 @@ Läuft im **Browser**, als **Handy-App** und als **Desktop-App (Windows/macOS/Li
 
 ## Schnellstart
 
-Voraussetzung: **Node.js 22.5 oder neuer** (nutzt die eingebaute SQLite-Datenbank – keine weiteren Datenbanken nötig).
+Voraussetzung: **Node.js 22.13 oder neuer** (nutzt die eingebaute SQLite-Datenbank – keine weiteren Datenbanken nötig).
 
 ```bash
 cd zync

@@ -9,5 +9,5 @@
     "build": "npm run build --prefix client",
     "start": "npm run build && npm start --prefix server"
   },
-  "engines": { "node": ">=22.5" }
+  "engines": { "node": ">=22.13" }
 }
