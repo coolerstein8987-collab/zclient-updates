@@ -1,0 +1,30 @@
+{
+  "name": "zync-desktop",
+  "productName": "Zync",
+  "version": "1.0.0",
+  "description": "Zync Desktop-App für Windows, macOS und Linux",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "app.zync.desktop",
+    "productName": "Zync",
+    "directories": { "output": "out" },
+    "files": ["main.js", "preload.js", "connect.html", "icons/**"],
+    "icon": "icons/icon.png",
+    "win": { "target": ["nsis"] },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "shortcutName": "Zync" },
+    "mac": { "target": ["dmg"], "category": "public.app-category.social-networking", "extendInfo": { "NSMicrophoneUsageDescription": "Zync braucht das Mikrofon für Sprachanrufe.", "NSCameraUsageDescription": "Zync braucht die Kamera für Videoanrufe." } },
+    "linux": { "target": ["AppImage", "deb"], "category": "Network" }
+  }
+}
