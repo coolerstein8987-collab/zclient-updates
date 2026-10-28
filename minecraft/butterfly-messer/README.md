@@ -9,13 +9,14 @@ Eigenes Design nach dem Vorbild des Valorant-Messers, ohne Logos oder Dateien vo
 
 - **3D-Modell:** Klinge mit Fase, erhöhter Rückenplatte und Akzentlinien, zwei Griffe mit
   Leucht-Einlagen, Schrauben, Führungsschienen, Verschluss und Z-Logo
-- **Hand in der Ego-Sicht:** Handschuh mit Ärmel und Leuchtsaum hält das Messer (rechts und links)
+- **Dein echter Arm in der Ego-Sicht:** Mit dem kleinen Mod [Z Messer-Hand](#mod-z-messer-hand) hält dein
+  Minecraft-Arm (mit deinem Skin) das Messer – auch beim Inspect
 - **Inspect:** Messer hochnehmen, zeigen, ein ganzer Dreher, Flip zu und wieder auf (3,3 Sekunden)
 - **Flips:** schnelle Flip-Schleife (2 Sekunden pro Durchgang)
 - **Leuchtspur:** Bei jeder Drehung zieht die Klinge eine durchscheinende, leuchtende Spur
   mit hellem Rand, Linien und Funken – in der Farbe des Messers
 - **Vier Farben:** Neon (Gelb/Grün), Rot, Gold, Blau
-- **Leuchtet im Dunkeln:** Einlagen, Köpfe, Seitenleisten, Klingenlinien, Ärmelsaum und Spuren
+- **Leuchtet im Dunkeln:** Einlagen, Köpfe, Seitenleisten, Klingenlinien und Spuren
 
 ## Installieren
 
@@ -23,6 +24,18 @@ Eigenes Design nach dem Vorbild des Valorant-Messers, ohne Logos oder Dateien vo
    (nicht entpacken).
 2. In den Ordner `resourcepacks` deines Minecraft- bzw. Z-Client-Ordners legen.
 3. Im Spiel unter **Optionen → Ressourcenpakete** aktivieren.
+
+## Mod: Z Messer-Hand
+
+Minecraft blendet den Arm aus, sobald man etwas in der Hand hält – das kann kein Ressourcenpaket ändern.
+Dafür gibt es den Mod [`Z-Messer-Hand-Mod.jar`](Z-Messer-Hand-Mod.jar) (Fabric, Minecraft 1.21.11,
+Quellcode in [`../zknife-hand/`](../zknife-hand/)):
+
+1. Die Datei in den Ordner `mods` deines Z-Client- bzw. Fabric-Ordners legen.
+2. Das Ressourcenpaket muss aktiv sein.
+
+Er braucht nur den Fabric Loader (kein Fabric API) und ändert nur die Ego-Sicht, wenn du das Messer hältst.
+Ohne Mod siehst du in der Ego-Sicht nur das Messer (wie bei jedem Gegenstand in Minecraft).
 
 ## Steuerung im Spiel
 
@@ -44,7 +57,7 @@ Das funktioniert mit einem Messer aus Befehl oder Datenpaket (B und C unten).
 | `Butterfly Gold` | Gold |
 | `Butterfly Blau` | Blau |
 
-Funktioniert mit jedem Schwert (Holz bis Netherit), mit Hand, aber ohne Inspect und Flips.
+Funktioniert mit jedem Schwert (Holz bis Netherit), aber ohne Inspect und Flips.
 
 **B) Befehl** (Cheats an), mit Inspect und Flips:
 
@@ -65,8 +78,6 @@ Ordner `datapacks` der Welt legen (oder beim Erstellen der Welt hinzufügen). Da
 
 - Andere Spieler sehen das Modell nur, wenn sie das Ressourcenpaket auch aktiviert haben.
   Ohne Paket sehen sie ein normales Eisenschwert.
-- Die Hand ist ein Handschuh mit Ärmel und nicht dein Skin. Minecraft blendet den echten Arm aus,
-  sobald man etwas in der Hand hält, darum ist sie Teil des Modells.
 - Die Leuchtspur gibt es beim Inspect und bei den Flips. Spuren bei normalen Schwerthieben
   (wie im Afterswing-Video) gehen nur mit einem Mod, nicht mit einem Ressourcenpaket.
 - Beim Inspect und bei den Flips kannst du normal laufen und sprinten. Solange du Rechtsklick hältst,
@@ -75,8 +86,9 @@ Ordner `datapacks` der Welt legen (oder beim Erstellen der Welt hinzufügen). Da
 
 ## Selbst anpassen
 
-Alles wird von [`tools/build.py`](tools/build.py) erzeugt: Form, Hand, Farben, Spuren, Inspect,
-Flips und beide Pakete. Farben ändern: `VARIANTS` im Skript anpassen, dann bauen:
+Alles wird von [`tools/build.py`](tools/build.py) erzeugt: Form, Farben, Spuren, Inspect,
+Flips und beide Pakete. Die Arm-Haltung für den Mod steht dort ebenfalls (`MOD_…`) und muss zu
+`../zknife-hand/src/main/java/de/zclient/zknifehand/KnifeHand.java` passen. Farben ändern: `VARIANTS` im Skript anpassen, dann bauen:
 
 ```
 pip install pillow

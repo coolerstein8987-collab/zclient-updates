@@ -3,7 +3,7 @@
 
 Erzeugt aus diesem Skript:
   * Ressourcenpaket: 3D-Modell (Klinge, zwei Griffe, Schrauben, Verschluss, Leucht-Einlagen),
-    Handschuh-Hand in der Ego-Sicht, Texturen in vier Farben, Inspect (Rechtsklick halten),
+    Texturen in vier Farben, Inspect (Rechtsklick halten),
     Flip-Schleife (Schleichen + Rechtsklick) und Leuchtspuren bei jeder Drehung.
   * Datenpaket: Rezepte und /function-Befehle zum Holen des Messers.
 
@@ -209,28 +209,6 @@ def make_handle(s):
 
 
 # ---------------------------------------------------------------------------
-# Hand (Handschuh + Ärmel) für die Ego-Sicht – hält Griff B, w zeigt zur Kamera
-# ---------------------------------------------------------------------------
-FINGERS = [(2.25, 3.25), (3.375, 4.375), (4.5, 5.5), (5.625, 6.625)]
-
-
-def make_hand():
-    p = Part('hand', 1.5, 7.5, -14.0, 2.0, px=8)
-    for u0, u1 in FINGERS:
-        p.box(u0, u1, 1.125, 1.625, 0.875)                        # Fingerglied über den Rücken der Griffe
-        p.box(u0, u1, -0.375, 1.125, 0, w=(0.375, 0.875))         # Fingerspitzen vorne
-        p.box(u0, u1, -1.125, 1.125, 0, w=(-0.875, -0.375))       # Handinnenseite hinten
-    p.box(2.25, 6.625, -1.125, -0.375, 0, w=(0.375, 0.75))        # Handballen
-    p.box(2.125, 6.75, -2.625, -1.125, 0.9375)                    # Handrücken / Handgelenk
-    p.box(4.875, 6.875, -1.375, 0.25, 0, w=(0.75, 1.25))          # Daumen
-    p.box(5.25, 6.875, 0.25, 0.625, 0, w=(0.625, 1.125))          # Daumenspitze
-    p.box(2.25, 6.625, -3.5, -2.625, 0.9375)                      # Handschuh-Bund
-    p.box(2.125, 6.75, -14.0, -3.25, 1.0625)                      # Ärmel
-    p.box(2.0625, 6.8125, -3.625, -3.25, 1.125, emission=15)      # Leuchtsaum am Ärmel
-    return p
-
-
-# ---------------------------------------------------------------------------
 # Leuchtspuren: flache Fächer um den Drehpunkt (durchscheinend, leuchtend)
 # ---------------------------------------------------------------------------
 TRAIL_PX = 128
@@ -421,48 +399,6 @@ def paint_handle(part, P):
     return cv.img
 
 
-GLOVE = (38, 41, 49)
-GLOVE_DARK = (22, 24, 29)
-PAD = (62, 67, 78)
-JACKET = (30, 34, 45)
-
-
-def paint_hand(part, P):
-    cv = Canvas(part)
-    nz = noise(21)
-    acc = P['accent']
-
-    def fabric(base, amp=2.2):
-        return lambda u, v: tuple(x + nz(u, v) * amp for x in base)
-    # Ärmel mit Falten und Paspeln
-    cv.fill(lambda u, v: tuple(x + nz(u, v) * 2 + 4 * math.sin(v * 1.9 + u * 0.4) for x in JACKET), rect=(1.5, 7.5, -14, -3.25))
-    cv.fill(shade(acc, 0.5), rect=(1.5, 7.5, -14, -3.25), where=lambda u, v: abs(u - 2.31) < 0.07 or abs(u - 6.56) < 0.07)
-    # Bund (gerippt) und Leuchtsaum
-    cv.fill(lambda u, v: shade(GLOVE_DARK, 1.25 if int((v + 3.5) * 8) % 2 else 0.85), rect=(1.5, 7.5, -3.5, -2.625))
-    cv.fill(acc, rect=(1.5, 7.5, -3.625, -3.25))
-    # Handrücken mit Schutzplatte
-    cv.fill(fabric(GLOVE), rect=(1.5, 7.5, -2.625, -1.125))
-    cv.fill(fabric(PAD, 1.5), rect=(2.5, 6.375, -2.375, -1.375))
-    cv.fill(shade(PAD, 1.25), rect=(2.5, 6.375, -1.5, -1.375))
-    cv.fill(shade(acc, 0.8), rect=(2.75, 6.125, -1.95, -1.8))
-    # Handballen
-    cv.fill(fabric(GLOVE), rect=(2.25, 6.625, -1.125, -0.375))
-    # Finger: Glieder, Gelenkfalte, Griffpolster, Knöchel
-    for u0, u1 in FINGERS:
-        cv.fill(fabric(GLOVE), rect=(u0, u1, -0.375, 1.125))
-        cv.fill(shade(GLOVE, 0.7), rect=(u0, u1, 0.375, 0.5))
-        cv.fill(fabric(PAD, 1.4), rect=(u0, u1, -0.375, 0.0))
-        cv.fill(fabric(GLOVE_DARK), rect=(u0, u1, 1.125, 1.625))
-        cv.fill(shade(PAD, 1.1), rect=(u0 + 0.125, u1 - 0.125, 1.375, 1.5))
-        cv.fill(shade(GLOVE_DARK, 0.7), rect=(u0, u0 + 0.12, -0.375, 1.625))
-    # Daumen mit Ziernaht
-    cv.fill(fabric(PAD, 1.4), rect=(4.875, 6.875, -1.375, 0.25))
-    cv.fill(shade(PAD, 1.3), rect=(4.875, 6.875, 0.125, 0.25))
-    cv.fill(shade(acc, 0.85), rect=(5.0, 6.75, -0.7, -0.58))
-    cv.fill(shade(PAD, 1.15), rect=(5.25, 6.875, 0.25, 0.625))
-    return cv.img
-
-
 def smoothstep(a, b, x):
     t = max(0.0, min(1.0, (x - a) / (b - a)))
     return t * t * (3 - 2 * t)
@@ -508,7 +444,6 @@ LAYOUT = {
     'blade': dict(o=(0, 0), r=(300, 0)),
     'handle_a': dict(o=(0, 28), r=(330, 0)),
     'handle_b': dict(o=(0, 50), r=None),
-    'hand': dict(o=(0, 80), r=None),
     'trail_ccw_l': dict(o=(64, 80), r=(64, 212)),
     'trail_cw_l': dict(o=(196, 212), r=(324, 212)),
     'trail_ccw_s': dict(o=(0, 344), r=(128, 344)),
@@ -521,8 +456,6 @@ def paint(part, P):
         return paint_blade(part, P)
     if part.name.startswith('handle'):
         return paint_handle(part, P)
-    if part.name == 'hand':
-        return paint_hand(part, P)
     _, direction, length = part.trail
     return paint_trail(direction, length, P)
 
@@ -833,6 +766,30 @@ def inspect_display(t):
     return fp_display(*INSPECT_KEYS[-1][1:])
 
 
+# Z Messer-Hand-Mod: Grundhaltung des echten Spieler-Arms in der Ego-Sicht (Blöcke / Grad, XYZ) und
+# Inspect-Bewegung (Drehung um die Armachse, Anheben). Dieselben Zahlen stehen in KnifeHand.java.
+MOD_BASE_TRANSLATION = [0.2352, -0.1241, 0.3796]
+MOD_BASE_ROTATION = [90.979, -32.204, 122.026]
+MOD_INSPECT_KEYS = [  # (Tick, Drehung um die Armachse, Anheben in Blöcken)
+    (0, 0, (0, 0, 0)),
+    (7, -35, (-0.10, 0.12, 0.0)),
+    (12, -30, (-0.09, 0.14, 0.0)),
+    (28, -32, (-0.10, 0.13, 0.0)),
+    (44, -24, (-0.08, 0.11, 0.0)),
+    (48, -34, (-0.10, 0.13, 0.0)),
+    (60, -28, (-0.09, 0.12, 0.0)),
+    (65, 0, (0, 0, 0)),
+]
+
+
+def mod_inspect(t):
+    for (t0, r0, l0), (t1, r1, l1) in zip(MOD_INSPECT_KEYS, MOD_INSPECT_KEYS[1:]):
+        if t0 <= t <= t1:
+            k = smoothstep(0, 1, (t - t0) / (t1 - t0))
+            return {'roll': r0 + (r1 - r0) * k, 'lift': [a + (b - a) * k for a, b in zip(l0, l1)]}
+    return {'roll': 0, 'lift': [0, 0, 0]}
+
+
 def history(seq, t, cyclic):
     if cyclic:
         return [seq[(t - j) % len(seq)] for j in (2, 1, 0)]
@@ -843,43 +800,24 @@ DISPLAY = {
     'thirdperson_righthand': {'rotation': [0, -90, 55], 'translation': [0, 4.0, 0.5], 'scale': [0.85, 0.85, 0.85]},
     'thirdperson_lefthand': {'rotation': [0, 90, -55], 'translation': [0, 4.0, 0.5], 'scale': [0.85, 0.85, 0.85]},
     'firstperson_righthand': FP_IDLE,
-    'firstperson_lefthand': FP_IDLE,
+    'firstperson_lefthand': {'rotation': [0, -60, -30], 'translation': [-1.5, 4.0, -2.5], 'scale': [0.58, 0.58, 0.58]},
     'ground': {'rotation': [0, 0, 0], 'translation': [0, 2, 0], 'scale': [0.5, 0.5, 0.5]},
     'head': {'rotation': [0, 180, 0], 'translation': [0, 13, 7], 'scale': [1, 1, 1]},
     'fixed': {'rotation': [0, 180, 0], 'scale': [1, 1, 1]},
 }
 
 
-def geometry(parts, state, trail_specs, hand=False):
+def geometry(parts, state, trail_specs):
     """Elemente einer Stellung; gibt (Elemente, Index des ersten Spur-Elements) zurück."""
     ps = poses(*state)
     els = []
     for part in parts['knife']:
         els += [element(part, bx, ps[part.name]) for bx in part.boxes]
-    if hand:
-        els += [element(parts['hand'], bx, Pose()) for bx in parts['hand'].boxes]
     first_trail = len(els)
     for kind, d, length, pivot, phi in trail_specs:
         part = parts['trails'][(kind, d, length)]
         els += [element(part, bx, Pose(phi - 90 if d == 'ccw' else phi, pivot)) for bx in part.boxes]
     return els, first_trail
-
-
-def mirror_element(el):
-    """Spiegelt ein Element an der Modellmitte (x -> 16 − x) für die linke Hand."""
-    f, t = el['from'], el['to']
-    out = {'from': [round(16 - t[0], 5), f[1], f[2]], 'to': [round(16 - f[0], 5), t[1], t[2]]}
-    if 'rotation' in el:
-        r = dict(el['rotation'])
-        r['origin'] = [16 - r['origin'][0], r['origin'][1], r['origin'][2]]
-        if r['axis'] in ('y', 'z'):
-            r['angle'] = -r['angle']
-        out['rotation'] = r
-    out['faces'] = {{'east': 'west', 'west': 'east'}.get(n, n): dict(fd, uv=[fd['uv'][2], fd['uv'][1], fd['uv'][0], fd['uv'][3]])
-                    for n, fd in el['faces'].items()}
-    if 'light_emission' in el:
-        out['light_emission'] = el['light_emission']
-    return out
 
 
 # ---------------------------------------------------------------------------
@@ -899,7 +837,7 @@ def model_ref(name):
 
 
 class Models:
-    """Sammelt die Modelle ohne Doppelte: Geometrie (geo/…) und je Farbe die Varianten mit Textur/Anzeige."""
+    """Sammelt die Modelle ohne Doppelte: Geometrie (geo/…) und je Farbe die Ansichten mit Textur/Anzeige."""
 
     def __init__(self, parts):
         self.parts = parts
@@ -907,39 +845,34 @@ class Models:
         self.views = {}        # Name -> (Geometrie-Name, Anzeige oder None)
         self._fp = {}
 
-    def _geo(self, prefix, state, specs):
-        name = f'geo/{prefix}_{state_key(state, specs)}'
+    def _geo(self, state, specs):
+        name = f'geo/{state_key(state, specs)}'
         if name not in self.geo:
-            els, first = geometry(self.parts, state, specs, hand=prefix != 'k')
-            if prefix == 'l':
-                els = [mirror_element(e) for e in els]
-            self.geo[name] = (els, first)
+            self.geo[name] = geometry(self.parts, state, specs)
         return name
 
     def knife(self, state, specs):
-        g = self._geo('k', state, specs)
-        name = g.split('/', 1)[1]
+        g = self._geo(state, specs)
+        name = 'k_' + g.split('/', 1)[1]
         self.views[name] = (g, None)
         return name
 
-    def fp(self, state, specs, display, left=False):
-        g = self._geo('l' if left else 'h', state, specs)
+    def fp(self, state, specs, display):
+        g = self._geo(state, specs)
         key = (g, json.dumps(display, sort_keys=True))
         if key not in self._fp:
-            self._fp[key] = f'{"fpl" if left else "fp"}_{len([k for k in self._fp if k[0].startswith("geo/" + ("l" if left else "h"))])}'
-            ctx = 'firstperson_lefthand' if left else 'firstperson_righthand'
-            self.views[self._fp[key]] = (g, {ctx: display})
+            self._fp[key] = f'fp_{len(self._fp)}'
+            self.views[self._fp[key]] = (g, {'firstperson_righthand': display})
         return self._fp[key]
 
 
 def tracks(models):
-    """Modell-Namen je Ansicht: Ruhe, Flip-Schleife (40 Ticks), Inspect (66 Ticks)."""
+    """Modell-Namen je Ansicht: Ruhe, Flip-Schleife (40 Ticks), Inspect (66 Ticks).
+    'k' = Messer allein (3. Person, Inventar, linke Hand, Z Messer-Hand-Mod), 'fp' = Ego-Sicht rechts ohne Mod."""
     out = {}
-    for ctx in ('k', 'fp', 'fpl'):
+    for ctx in ('k', 'fp'):
         def view(state, specs, display):
-            if ctx == 'k':
-                return models.knife(state, specs)
-            return models.fp(state, specs, display, left=ctx == 'fpl')
+            return models.knife(state, specs) if ctx == 'k' else models.fp(state, specs, display)
         out[ctx] = {
             'idle': view(S(0), (), FP_IDLE),
             'loop': [view(LOOP[t], trails(history(LOOP, t, True)), FP_IDLE) for t in range(PERIOD)],
@@ -976,10 +909,9 @@ def track_tree(variant, track):
 
 
 def by_context(variant, make):
-    """Ego-Sicht rechts/links mit Hand, alles andere nur das Messer."""
+    """Ego-Sicht rechts mit eigener Inspect-Bewegung, alles andere nur das Messer."""
     return {'type': 'minecraft:select', 'property': 'minecraft:display_context',
-            'cases': [{'when': 'firstperson_righthand', 'model': make('fp')},
-                      {'when': 'firstperson_lefthand', 'model': make('fpl')}],
+            'cases': [{'when': 'firstperson_righthand', 'model': make('fp')}],
             'fallback': make('k')}
 
 
@@ -1051,9 +983,9 @@ def export_preview(out, parts, models, tr):
     used = {tr['k']['idle'], *tr['k']['loop'], *tr['k']['inspect']}
     data = {
         'geo': {n: list(models.geo[models.views[n][0]]) for n in sorted(used)},
-        'hand': [element(parts['hand'], bx, Pose()) for bx in parts['hand'].boxes],
         'idle': tr['k']['idle'], 'loop': tr['k']['loop'], 'inspect': tr['k']['inspect'],
-        'inspectDisplay': [inspect_display(t) for t in range(len(INSPECT))],
+        'mod': {'translation': MOD_BASE_TRANSLATION, 'rotation': MOD_BASE_ROTATION,
+                'inspect': [mod_inspect(t) for t in range(len(INSPECT))]},
         'display': DISPLAY, 'variants': {}, 'order': ORDER,
     }
     for v in ORDER:
@@ -1071,12 +1003,12 @@ def export_preview(out, parts, models, tr):
 
 
 def make_parts():
-    return {'knife': [make_blade(), make_handle(1), make_handle(-1)], 'hand': make_hand(),
+    return {'knife': [make_blade(), make_handle(1), make_handle(-1)],
             'trails': {(k, d, l): make_trail(k, d, l) for k in TRAIL_R for d in ('ccw', 'cw') for l in TRAIL_SWEEP}}
 
 
 def all_parts(parts):
-    return parts['knife'] + [parts['hand']] + list(parts['trails'].values())
+    return parts['knife'] + list(parts['trails'].values())
 
 
 def build(out):

@@ -11,5 +11,6 @@ Im Ordner [`zync/`](zync/README.md) liegt **Zync** – eine moderne Chat-, Voice
 ## Butterfly-Messer (Ressourcenpaket)
 
 Im Ordner [`minecraft/butterfly-messer/`](minecraft/butterfly-messer/README.md) liegt ein 3D-Butterfly-Messer
-für Minecraft 1.21.11 mit Hand in der Ego-Sicht, Inspect, Flips, Leuchtspur und vier Farben
-(Ressourcenpaket + optionales Datenpaket).
+für Minecraft 1.21.11 mit Inspect, Flips, Leuchtspur und vier Farben (Ressourcenpaket + optionales Datenpaket),
+dazu der kleine Fabric-Mod [`minecraft/zknife-hand/`](minecraft/zknife-hand/README.md), der in der Ego-Sicht deinen
+echten Minecraft-Arm mit dem Messer zeigt.
