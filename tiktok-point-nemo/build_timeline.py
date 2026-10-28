@@ -4,20 +4,21 @@ Word timing: each line's audio is split at its pauses; words are assigned to the
 phrase (punctuation-delimited) they belong to and spread inside it by syllable weight.
 """
 import json
+import os
 import re
 import wave
 
 import numpy as np
 
 SR = 48000
-START = 0.35   # first line begins here
-GAP = 0.22     # silence between lines
+START = float(os.environ.get("START", 0.35))  # first line begins here
+GAP = float(os.environ.get("GAP", 0.22))      # silence between lines
 TAIL = 1.15    # hold after the last line
 
 # Display words with optional spoken form (for syllable weighting) in square brackets.
 LINES = [
     "Das ist der einsamste Ort der Welt.",
-    "Point[Peunt] Nemo. Mitten im Südpazifik.",
+    "Point Nemo. Mitten im Südpazifik.",
     "Das nächste Land? Über 2.600[zweitausendsechshundert] Kilometer weg. In jede Richtung.",
     "Die nächsten Menschen? Oft gar nicht auf der Erde, sondern auf der Raumstation. Nur 400[vierhundert] Kilometer über dir.",
     "Darum liegt hier ein Friedhof für Raumschiffe. Über 260[zweihundertsechzig] sind hier schon versunken.",

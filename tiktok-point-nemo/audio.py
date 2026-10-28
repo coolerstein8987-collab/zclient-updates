@@ -402,17 +402,27 @@ def read_mono(path):
     return x
 
 
+NATURAL_VOICE = os.environ.get("VOICE", "elevenlabs") == "elevenlabs"
+
+
 def process_voice(x):
-    x = filt(x, "high", 85)
-    x = peq(x, 220, 2.0, 0.8)
-    x = peq(x, 3200, 3.5, 1.0)
-    x = peq(x, 650, -1.5, 1.2)
-    air = filt(np.tanh(6 * filt(x, "high", 2500)) / 6, "high", 7000)
-    x = x + air * 0.6
+    if NATURAL_VOICE:
+        # studio TTS (ElevenLabs): only clean the lows, a touch of presence, gentle levelling
+        x = filt(x, "high", 70)
+        x = peq(x, 3500, 1.5, 1.0)
+        ratio, thr = 3.0, 0.05
+    else:
+        # SVOX Pico: band-limited 16 kHz voice needs more shaping and some synthetic air
+        x = filt(x, "high", 85)
+        x = peq(x, 220, 2.0, 0.8)
+        x = peq(x, 3200, 3.5, 1.0)
+        x = peq(x, 650, -1.5, 1.2)
+        air = filt(np.tanh(6 * filt(x, "high", 2500)) / 6, "high", 7000)
+        x = x + air * 0.6
+        ratio, thr = 3.5, 0.08
     # RMS compressor
     e = np.sqrt(signal.lfilter([0.002], [1, -0.998], x ** 2) + 1e-9)
-    thr = 0.08
-    g = np.where(e > thr, (thr / e) ** (1 - 1 / 3.5), 1.0)
+    g = np.where(e > thr, (thr / e) ** (1 - 1 / ratio), 1.0)
     return x * g
 
 
@@ -422,7 +432,7 @@ def build_voice():
         x = process_voice(read_mono(f"voice/v{ln['id']}.wav"))
         place(v, st(x), ln["start"])
     v /= np.max(np.abs(v)) + 1e-9
-    v = reverb(v, 0.35, 0.8, 0.08, 7000)
+    v = reverb(v, 0.35, 0.8, 0.04 if NATURAL_VOICE else 0.08, 7000)
     return v * 0.9
 
 
@@ -486,9 +496,9 @@ def main():
     venv = np.abs(voice).max(axis=0)
     venv = signal.lfilter([1 - 0.9995], [1, -0.9995], venv)
     venv = np.clip(venv / (venv.max() + 1e-9) * 3, 0, 1)
-    duck = 1 - 0.55 * venv
-    music_d = music * duck * 0.38
-    fx_d = fx * 0.5 * (1 - 0.6 * venv)
+    duck = 1 - 0.6 * venv
+    music_d = music * duck * 0.3
+    fx_d = fx * 0.45 * (1 - 0.7 * venv)
     bed = music_d + fx_d
     mix = bed + voice
     g = float(os.environ.get("GAIN", "1.0"))
