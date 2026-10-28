@@ -415,6 +415,22 @@ export function serializeMessages(rows) {
     if (!m.has(r.emoji)) m.set(r.emoji, []);
     m.get(r.emoji).push(r.user_id);
   }
+  // Umfragen und Gewinnspiele hängen ihre Daten direkt an die Nachricht
+  const special = rows.filter((r) => r.type === 'poll' || r.type === 'giveaway').map((r) => r.id);
+  const polls = new Map();
+  const giveaways = new Map();
+  if (special.length) {
+    const sp = special.map(() => '?').join(',');
+    for (const p of q.all(`SELECT * FROM polls WHERE message_id IN (${sp})`, ...special)) {
+      const options = json(p.options, []);
+      polls.set(p.message_id, { question: p.question, options, multi: !!p.multi, endsAt: p.ends_at, votes: options.map(() => []) });
+    }
+    for (const v of q.all(`SELECT * FROM poll_votes WHERE message_id IN (${sp})`, ...special)) polls.get(v.message_id)?.votes[v.option]?.push(v.user_id);
+    for (const g of q.all(`SELECT * FROM giveaways WHERE message_id IN (${sp})`, ...special)) {
+      giveaways.set(g.message_id, { prize: g.prize, winners: g.winners, endsAt: g.ends_at, ended: !!g.ended, result: json(g.result, []), entrants: [] });
+    }
+    for (const e of q.all(`SELECT * FROM giveaway_entries WHERE message_id IN (${sp})`, ...special)) giveaways.get(e.message_id)?.entrants.push(e.user_id);
+  }
   const replyIds = [...new Set(rows.map((r) => r.reply_to).filter(Boolean))];
   const replies = new Map();
   if (replyIds.length) {
@@ -442,5 +458,7 @@ export function serializeMessages(rows) {
     createdAt: r.created_at,
     reactions: [...(byMsg.get(r.id) || new Map())].map(([emoji, users]) => ({ emoji, users })),
     ...(r.meta ? { meta: json(r.meta, null) } : {}),
+    ...(polls.has(r.id) ? { poll: polls.get(r.id) } : {}),
+    ...(giveaways.has(r.id) ? { giveaway: giveaways.get(r.id) } : {}),
   }));
 }

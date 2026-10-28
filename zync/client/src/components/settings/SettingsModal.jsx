@@ -16,6 +16,7 @@ import { VoiceSettings, KeyCapture } from './VoiceSettings.jsx';
 import { GetAppSettings } from '../GetApp.jsx';
 import { AdminSettings } from './AdminSettings.jsx';
 import { DiscordAccountSection } from '../Discord.jsx';
+import { BirthdaySettings, GuestbookSettings } from '../Extras.jsx';
 import { useBackHandler } from '../../lib/back.js';
 
 function AccountSettings() {
@@ -108,6 +109,8 @@ function PrivacySettings() {
   const update = (patch) => api('/me', { method: 'PATCH', body: { privacy: { ...privacy, ...patch } } }).catch((e) => toast(e.message, 'error'));
   return (
     <>
+      <BirthdaySettings />
+      <GuestbookSettings />
       <Section title="Wer darf dir Freundschaftsanfragen senden?">
         <Segmented value={privacy.friendRequests} onChange={(v) => update({ friendRequests: v })} options={[{ value: 'everyone', label: 'Alle' }, { value: 'mutual', label: 'Gemeinsame Kontakte' }, { value: 'none', label: 'Niemand' }]} />
       </Section>

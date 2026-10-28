@@ -14,6 +14,7 @@ import { cx, formatDate, hashColor, STATUS_LABEL, copyText } from '../lib/format
 import { voice } from '../lib/voice.js';
 import { ServerTagChip, BadgeRow, ProfileWidgets, ActivityLine, ClaimChip, StreakChip, endClaim } from './Social.jsx';
 import { openStories } from './Stories.jsx';
+import { BirthdayCake, ProfileSong } from './Extras.jsx';
 
 export function Tag({ label }) {
   return <span className="tag-chip" style={{ '--tag': hashColor(label.toLowerCase(), 75, 65) }}>{label}</span>;
@@ -103,6 +104,7 @@ export function ProfileCard({ userId, user: override, serverId, extra, actions =
           <div className="pc-names">
             <div className="pc-name-row">
               <NameTag user={user} serverId={serverId} className="pc-display" />
+              <BirthdayCake userId={user.id} />
               {user.serverTag && <ServerTagChip tag={user.serverTag} />}
             </div>
             <div className="pc-username">
@@ -118,6 +120,7 @@ export function ProfileCard({ userId, user: override, serverId, extra, actions =
             </div>
           )}
           {user.claim && <ClaimChip claim={user.claim} viewerId={user.id} />}
+          <ProfileSong song={user.song} />
           <ActivityLine activity={user.activity} />
           {user.tags?.length > 0 && <div className="pc-tags">{user.tags.map((t) => <Tag key={t} label={t} />)}</div>}
           {user.bio && (

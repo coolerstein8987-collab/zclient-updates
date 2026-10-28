@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PlusCircle, Smile, Sticker as StickerIcon, X, EyeOff, Eye, FileText, SendHorizontal, Image as ImageIcon, Mic, Sparkles } from 'lucide-react';
-import { useStore, sendMessage, sendTyping, resetTypingThrottle, toast, displayName, openModal } from '../lib/store.js';
+import { PlusCircle, Smile, Sticker as StickerIcon, X, EyeOff, Eye, FileText, SendHorizontal, Image as ImageIcon, Mic, Sparkles, Upload, BarChart3, CalendarClock, Bell } from 'lucide-react';
+import { useStore, sendMessage, sendTyping, resetTypingThrottle, toast, displayName, openModal, openMenu } from '../lib/store.js';
+import { slashCommands } from './Helpers.jsx';
 import { useSettings } from '../lib/settings.js';
 import { uploadFile, imageSize } from '../lib/api.js';
 import { convertEmojis, searchEmojis } from '../lib/emoji.js';
@@ -104,6 +105,14 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
 
   const updateAutocomplete = (value, caret) => {
     const before = value.slice(0, caret);
+    const slash = /^\/([\p{L}]{0,20})$/u.exec(before);
+    if (slash) {
+      const t = slash[1].toLowerCase();
+      const list = slashCommands(channel).filter((c) => c.name.startsWith(t))
+        .map((c) => ({ key: c.name, label: `/${c.name}`, hint: c.hint, icon: <span className="ac-emoji">{c.icon}</span>, action: c.run }));
+      setAc({ items: list, index: 0, start: 0 });
+      return;
+    }
     const mention = /(^|\s)@([\p{L}\p{N}_.]{0,32})$/u.exec(before);
     const emoji = /(^|\s):([a-z0-9_+-]{2,32})$/i.exec(before);
     if (mention) {
@@ -122,6 +131,12 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
   };
 
   const applyAc = (it) => {
+    if (it.action) {
+      setText('');
+      setAc({ items: [], index: 0, start: 0 });
+      it.action();
+      return;
+    }
     const el = taRef.current;
     const caret = el.selectionStart;
     const next = text.slice(0, ac.start) + it.insert + text.slice(caret);
@@ -263,7 +278,21 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
       )}
       {recording ? <VoiceRecorder onSend={sendVoice} onCancel={() => setRecording(false)} /> : (
       <div className={cx('composer', disabled && 'disabled')}>
-        <button type="button" className="composer-btn" onClick={() => fileRef.current?.click()} aria-label="Datei hochladen" data-tip="Datei / Foto hochladen" disabled={disabled}><PlusCircle size={22} /></button>
+        <button
+          type="button"
+          className="composer-btn"
+          aria-label="Mehr"
+          data-tip="Datei, Umfrage, Planen …"
+          disabled={disabled}
+          onClick={(e) => openMenu(e, [
+            { label: 'Datei / Foto hochladen', icon: <Upload size={16} />, onClick: () => fileRef.current?.click() },
+            { label: 'Umfrage', icon: <BarChart3 size={16} />, onClick: () => openModal('poll', { channelId: cid }) },
+            { label: 'Nachricht planen', icon: <CalendarClock size={16} />, onClick: () => openModal('schedule', { channelId: cid, kind: 'message', content: text }) },
+            { label: 'Erinnerung', icon: <Bell size={16} />, onClick: () => openModal('schedule', { channelId: cid, kind: 'reminder' }) },
+          ])}
+        >
+          <PlusCircle size={22} />
+        </button>
         <input ref={fileRef} type="file" multiple hidden onChange={(e) => { add([...e.target.files]); e.target.value = ''; }} />
         <textarea
           ref={taRef}

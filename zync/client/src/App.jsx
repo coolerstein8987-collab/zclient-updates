@@ -11,6 +11,7 @@ import { RewardsView } from './components/Rewards.jsx';
 import { StoryViewer } from './components/Stories.jsx';
 import { AiView } from './components/Ai.jsx';
 import { handleDiscordReturn } from './components/Discord.jsx';
+import { loadBirthdays, confetti } from './components/Extras.jsx';
 import { useSettings, matchesShortcut, applySettings } from './lib/settings.js';
 import { voice, useVoice } from './lib/voice.js';
 import { unlockAudio } from './lib/sounds.js';
@@ -168,10 +169,13 @@ function useGlobalEffects() {
     }
     if ('serviceWorker' in navigator && import.meta.env.PROD) navigator.serviceWorker.register('/sw.js').catch(() => {});
     handleDiscordReturn();
+    const party = () => confetti();
+    window.addEventListener('zync:confetti', party);
   }, []);
 
   useEffect(() => {
     if (!ready) return undefined;
+    loadBirthdays({ greet: true });
     const code = sessionStorage.getItem('zync.pendingInvite');
     if (code) {
       sessionStorage.removeItem('zync.pendingInvite');

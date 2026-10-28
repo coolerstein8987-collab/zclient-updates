@@ -10,6 +10,7 @@ import { loadShop, ItemPreview } from '../Rewards.jsx';
 import { ServerTagChip } from '../Social.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { cx } from '../../lib/format.js';
+import { SongSettings } from '../Extras.jsx';
 
 const TAG_SUGGESTIONS = ['HxH', 'Anime', 'Manga', 'Gaming', 'Valorant', 'Minecraft', 'Fortnite', 'LoL', 'K-Pop', 'Musik', 'Art', 'Coding', 'Fitness', 'Fotografie', 'Night Owl', 'Cozy', 'Aesthetic', 'Y2K', 'Lofi', 'JJK', 'One Piece', 'Naruto', 'Genshin', 'Cosplay', 'Bücher', 'Film', 'Reisen', 'Katzen', 'Hunde', 'Skate'];
 
@@ -244,6 +245,8 @@ export function ProfileSettings() {
           <button type="button" className="btn success sm" onClick={save} disabled={saving}>{saving ? 'Speichert…' : 'Änderungen speichern'}</button>
         </div>
       )}
+
+      <SongSettings />
 
       {cropper && (
         <ImageCropper

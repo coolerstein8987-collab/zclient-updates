@@ -7,6 +7,7 @@ import { cx, formatDate } from '../lib/format.js';
 import { Modal, Spinner, useFloating, useClickOutside, Field } from './ui.jsx';
 import { Avatar, ServerIcon, NameTag } from './Avatar.jsx';
 import { ProfileCard, BioText } from './ProfileCard.jsx';
+import { Guestbook } from './Extras.jsx';
 
 export const claimWindow = (c) => (c.start === c.end ? 'ganztägig' : `${hhmm(c.start)}–${hhmm(c.end)}`);
 export const hhmm = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
@@ -411,7 +412,7 @@ function FullProfileModal({ userId, serverId }) {
         <div className="fp-left"><ProfileCard userId={userId} serverId={serverId} extra={extra} onAction={closeModal} hideWidgets /></div>
         <div className="fp-right">
           <nav className="fp-tabs">
-            {[['about', 'Über mich'], ['widgets', 'Widgets'], ['stats', 'Erfolge'], ['mutual', 'Gemeinsam']].map(([id, label]) => (
+            {[['about', 'Über mich'], ['widgets', 'Widgets'], ['guestbook', 'Gästebuch'], ['stats', 'Erfolge'], ['mutual', 'Gemeinsam']].map(([id, label]) => (
               <button key={id} type="button" className={cx(tab === id && 'active')} onClick={() => setTab(id)}>{label}</button>
             ))}
           </nav>
@@ -423,6 +424,7 @@ function FullProfileModal({ userId, serverId }) {
                 <div className="fp-section"><h4>Mitglied seit</h4><span>{formatDate(user.createdAt)}</span></div>
               </div>
             )}
+            {tab === 'guestbook' && <Guestbook userId={userId} />}
             {tab === 'widgets' && (user.widgets?.length ? <ProfileWidgets user={user} /> : <div className="empty-state small">Noch keine Widgets 🧩</div>)}
             {tab === 'stats' && (!stats ? <div className="msg-loading"><Spinner /></div> : (
               <div className="badge-grid compact">

@@ -18,6 +18,8 @@ import { ExpressionPicker, rememberEmoji } from './ExpressionPicker.jsx';
 import { AiToggleNote, TranslationBlock } from './Ai.jsx';
 import { translateMessage } from '../lib/ai.js';
 import { BridgeNote } from './Discord.jsx';
+import { PollCard, GiveawayCard } from './Helpers.jsx';
+import { BirthdayCake } from './Extras.jsx';
 
 const JOIN_PHRASES = [
   'ist gerade reingeschneit. ❄️', 'ist da – macht Platz! 🎉', 'ist dem Server beigetreten. Sag hallo! 👋',
@@ -306,6 +308,7 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
           <div className="msg-head">
             <NameTag user={shown} userId={fromDiscord ? undefined : msg.authorId} serverId={fromDiscord ? undefined : serverId} className="msg-author" onClick={(e) => !fromDiscord && openPopout(msg.authorId, e, serverId)} />
             {fromDiscord && <span className="bot-tag discord">Discord</span>}
+            {!fromDiscord && <BirthdayCake userId={msg.authorId} />}
             {!fromDiscord && author?.bot && <span className={cx('bot-tag', msg.authorId === 'bot-ki' && 'ki')}>{msg.authorId === 'bot-ki' ? '✨ KI' : 'BOT'}</span>}
             {author?.serverTag && <ServerTagChip tag={author.serverTag} className="sm" />}
             {roleIcon}
@@ -313,7 +316,9 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
             {msg.pinned && <Pin size={12} className="pin-ico" />}
           </div>
         )}
-        {editing ? <EditBox msg={msg} onDone={() => useStore.setState({ editing: null })} /> : msg.content && (
+        {msg.type === 'poll' && <PollCard msg={msg} />}
+        {msg.type === 'giveaway' && <GiveawayCard msg={msg} />}
+        {editing ? <EditBox msg={msg} onDone={() => useStore.setState({ editing: null })} /> : msg.content && msg.type !== 'poll' && msg.type !== 'giveaway' && (
           <div className={cx('msg-content', jumbo && 'jumbo')}>
             {renderMarkdown(msg.content, ctx)}
             {msg.editedAt && <span className="edited" title={formatStamp(msg.editedAt)}> (bearbeitet)</span>}

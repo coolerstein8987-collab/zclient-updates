@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Plus, Compass, Users, Hash, Volume2, ChevronDown, ChevronRight, Settings, UserPlus, LogOut, FolderPlus, X, Mic, MicOff,
-  Headphones, HeadphoneOff, PhoneOff, Video, ScreenShare, Search, Bell, Pencil, Copy, Link, Signal, MessageSquarePlus, Trash2, CheckCheck, Gift, Gamepad2, Sparkles,
+  Headphones, HeadphoneOff, PhoneOff, Video, ScreenShare, Search, Bell, Pencil, Copy, Link, Signal, MessageSquarePlus, Trash2, CheckCheck, Gift, Gamepad2, Sparkles, Trophy,
 } from 'lucide-react';
 import {
   useStore, openHome, openServer, openChannel, openDm, openDiscover, openRewards, openAi, openModal, openSettings, openMenu, openPopout,
@@ -308,6 +308,7 @@ export function ServerSidebar({ serverId }) {
   const headMenu = [
     { label: 'Leute einladen', icon: <UserPlus size={16} />, onClick: () => openModal('invite', { serverId }), accent: true },
     canSettings && { label: 'Servereinstellungen', icon: <Settings size={16} />, onClick: () => openModal('serverSettings', { serverId }) },
+    { label: 'Rangliste', icon: <Trophy size={16} />, onClick: () => openModal('leaderboard', { serverId }) },
     admin && { label: 'Kanal erstellen', icon: <Plus size={16} />, onClick: () => openModal('channel', { serverId }) },
     admin && { label: 'Kategorie erstellen', icon: <FolderPlus size={16} />, onClick: () => openModal('channel', { serverId, categoryOnly: true }) },
     { label: 'Spitzname ändern', icon: <Pencil size={16} />, onClick: () => openModal('nickname', { serverId, userId: meId }) },

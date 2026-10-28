@@ -158,6 +158,7 @@ function hardLogout() {
 setUnauthorizedHandler(hardLogout);
 
 export const SPECIAL_VIEWS = ['discover', 'rewards', 'ai'];
+const WISHES = /alles gute|happy birthday|herzlichen glückwunsch|hbd\b|happy bday/i;
 
 function normalizeServer(srv) {
   const { members = [], roles = [], ...rest } = srv;
@@ -310,6 +311,7 @@ let nonceSeq = 0;
 export async function sendMessage(channelId, { content = '', attachments = [], sticker = null, replyTo = null }) {
   const me = get().me;
   const nonce = `n${Date.now()}${nonceSeq++}`;
+  if (WISHES.test(content || '')) window.dispatchEvent(new Event('zync:confetti'));
   const pending = {
     id: `~${nonce}`, nonce, pending: true, channelId, authorId: me.id, content, attachments, sticker,
     replyTo: replyTo ? { id: replyTo.id, authorId: replyTo.authorId, content: replyTo.content } : null,
@@ -423,6 +425,7 @@ export function connectSocket() {
     if (!ch) return;
     if (isActiveChannel(msg.channelId)) {
       ack(msg.channelId);
+      if (WISHES.test(msg.content || '')) window.dispatchEvent(new Event('zync:confetti'));
       return;
     }
     const isDm = ch.type === 'dm';
@@ -574,6 +577,7 @@ export function connectSocket() {
 
   socket.on('channel:ai', ({ channelId, ai }) => set((s) => (s.channels[channelId] ? { channels: { ...s.channels, [channelId]: { ...s.channels[channelId], ai } } } : {})));
   socket.on('ai:notice', ({ text }) => toast(text, 'info', 6000));
+  socket.on('guestbook:new', ({ user }) => toast(`📖 ${user.displayName} hat in dein Gästebuch geschrieben`, 'info', 5000));
   socket.on('app:config', ({ aiEnabled, aiModel, discordLogin, discordBridge }) => {
     set((s) => ({ ai: { ...s.ai, enabled: aiEnabled, model: aiModel }, discordLogin, discordBridge }));
     api('/ai/status').then((ai) => set({ ai })).catch(() => {});

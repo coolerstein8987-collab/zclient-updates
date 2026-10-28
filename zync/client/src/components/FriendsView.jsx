@@ -8,12 +8,14 @@ import { voice } from '../lib/voice.js';
 import { cx, STATUS_LABEL, copyText } from '../lib/format.js';
 import { Avatar, NameTag, ServerIcon } from './Avatar.jsx';
 import { Spinner } from './ui.jsx';
+import { BirthdayCalendar } from './Extras.jsx';
 
 const TABS = [
   { id: 'online', label: 'Online' },
   { id: 'all', label: 'Alle' },
   { id: 'pending', label: 'Ausstehend' },
   { id: 'blocked', label: 'Blockiert' },
+  { id: 'birthdays', label: '🎂 Geburtstage' },
 ];
 
 function AddFriend() {
@@ -181,7 +183,7 @@ export function FriendsView() {
       <div className="friends-body">
         <div className="friends-main">
           {tab !== 'add' && <StoryBar />}
-          {tab === 'add' ? <AddFriend /> : (
+          {tab === 'add' ? <AddFriend /> : tab === 'birthdays' ? <BirthdayCalendar /> : (
             <>
               {tab === 'pending' && <ClaimRequests />}
               <div className="friends-search"><input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Suchen" /><Search size={16} /></div>

@@ -17,6 +17,7 @@ import { DmCallStage } from './Call.jsx';
 import { StreakChip, ClaimChip, ActivityLine } from './Social.jsx';
 import { openStoryComposer } from './Stories.jsx';
 import { AiEyeButton, AiSummaryButton, AiConsentBanner } from './Ai.jsx';
+import { BirthdayBanner } from './Extras.jsx';
 
 function streakMenu(e, channel, partner, meId) {
   const st = channel.streak;
@@ -327,6 +328,7 @@ export function ChatView({ channel }) {
         <div className="chat-main">
           {isDm && <DmCallStage channel={channel} />}
           <AiConsentBanner channel={channel} />
+          <BirthdayBanner channel={channel} />
           <MessageList channel={channel} jumpRef={jumpRef} />
           <Composer channel={channel} placeholder={placeholder} attachments={attachments} disabled={blocked} />
           <TypingIndicator channel={channel} />

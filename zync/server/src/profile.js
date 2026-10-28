@@ -3,6 +3,7 @@ import { q, json } from './db.js';
 import { relationship } from './access.js';
 import { topBadges, ownedIds } from './progress.js';
 import { minuteOfDay } from './config.js';
+import { birthdayToday } from './extras.js';
 
 export function inWindow(startMin, endMin, now = minuteOfDay()) {
   if (startMin === endMin) return true;
@@ -75,6 +76,8 @@ export function publicUser(u) {
     activity: json(u.activity, null),
     badges: topBadges(u),
     claim: claim ? serializeClaim(claim) : null,
+    song: json(u.song, null),
+    ...(birthdayToday(u) ? { birthdayToday: true } : {}),
     createdAt: u.created_at,
   };
 }
@@ -88,6 +91,7 @@ export function selfUser(u) {
     owned: [...ownedIds(u)],
     tagServer: u.tag_server,
     hasPassword: u.password !== '!',
+    birthday: json(u.birthday, null),
     discordLinked: !!u.discord_id,
   };
 }

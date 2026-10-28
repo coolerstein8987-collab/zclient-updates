@@ -6,6 +6,7 @@ import path from 'node:path';
 import { db, UPLOAD_DIR } from './db.js';
 import { backupEnabled, restoreUpload, startBackups } from './backup.js';
 import { initDiscord } from './discord.js';
+import { startHelperTicks } from './helpers.js';
 import { api } from './api.js';
 import { startTicks } from './features.js';
 import { initRealtime } from './realtime.js';
@@ -74,6 +75,7 @@ initRealtime(server);
 startTicks();
 startBackups(db);
 initDiscord();
+startHelperTicks();
 
 server.listen(PORT, () => {
   console.log(`⚡ Zync läuft auf ${tls ? 'https' : 'http'}://localhost:${PORT}`);

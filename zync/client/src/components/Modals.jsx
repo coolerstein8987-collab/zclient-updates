@@ -16,6 +16,7 @@ import { socialModal } from './Social.jsx';
 import { StoryComposer } from './Stories.jsx';
 import { AiAssist, AiSummary } from './Ai.jsx';
 import { DiscordBridgeSection } from './Discord.jsx';
+import { PollModal, GiveawayModal, ScheduleModal, ScheduledListModal, LeaderboardModal, HelpersSettings } from './Helpers.jsx';
 import { PERMS, permsOf } from '../lib/perm.js';
 
 const TEMPLATES = [
@@ -384,6 +385,7 @@ function ServerSettingsModal({ serverId }) {
     perms & PERMS.MANAGE_SERVER && ['overview', 'Übersicht'],
     perms & PERMS.MANAGE_ROLES && ['roles', 'Rollen'],
     perms & PERMS.MANAGE_SERVER && ['tag', 'Server-Tag'],
+    perms & PERMS.MANAGE_SERVER && ['helpers', 'Zync-Helfer ✨'],
     perms & PERMS.MANAGE_CHANNELS && ['channels', 'Kanäle'],
     ['members', 'Mitglieder'],
     perms & PERMS.MANAGE_SERVER && ['invites', 'Einladungen'],
@@ -448,6 +450,7 @@ function ServerSettingsModal({ serverId }) {
               <button type="button" className="btn secondary" onClick={() => useStore.setState({ modal: { type: 'channel', props: { serverId } } })}>+ Kanal erstellen</button>
             </div>
           )}
+          {tab === 'helpers' && <HelpersSettings serverId={serverId} />}
           {tab === 'members' && (
             <div className="ss-members">
               <div className="invite-search"><Search size={16} /><input value={memberTerm} onChange={(e) => setMemberTerm(e.target.value)} placeholder="Mitglieder durchsuchen" /></div>
@@ -501,6 +504,11 @@ export function ModalHost() {
     case 'storyComposer': return <StoryComposer {...p} />;
     case 'aiAssist': return <AiAssist key={p.messageId || 'composer'} {...p} />;
     case 'aiSummary': return <AiSummary {...p} />;
+    case 'poll': return <PollModal {...p} />;
+    case 'giveaway': return <GiveawayModal {...p} />;
+    case 'schedule': return <ScheduleModal {...p} />;
+    case 'scheduledList': return <ScheduledListModal />;
+    case 'leaderboard': return <LeaderboardModal {...p} />;
     default: return socialModal(modal);
   }
 }

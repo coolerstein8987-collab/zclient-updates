@@ -22,6 +22,8 @@ import { bus } from './bus.js';
 import { ai, aiStatusFor } from './ai.js';
 import { admin } from './admin.js';
 import { discordAuth, discordApi, notePublicBase } from './discord.js';
+import { helpers, filterMessage } from './helpers.js';
+import { extras } from './extras.js';
 import { isOwner, getSetting } from './settings.js';
 
 export const api = express.Router();
@@ -292,6 +294,7 @@ api.patch('/me', wrap((req) => {
   }
   if ('privacy' in b && b.privacy && typeof b.privacy === 'object') {
     set.privacy = JSON.stringify({
+      ...JSON.parse(u.privacy || '{}'),
       friendRequests: ['everyone', 'mutual', 'none'].includes(b.privacy.friendRequests) ? b.privacy.friendRequests : 'everyone',
       serverDms: b.privacy.serverDms !== false,
     });
@@ -770,6 +773,7 @@ function joinServer(s, user) {
     emitToServer(s.id, 'member:add', { member: serializeMember(getMember(s.id, user.id)), user: publicUser(user), status: presenceOf(user.id) });
     emitToUser(user.id, 'server:create', { server: payload, users, presences, voice: voiceStatesFor(user.id) });
     postSystemMessage(s.id, user.id, 'join');
+    bus.emit('member:join', { serverId: s.id, userId: user.id });
   }
   return serverPayload(s.id);
 }
@@ -922,6 +926,7 @@ api.post('/channels/:id/messages', msgLimit, wrap((req) => {
   }
   if (!content && !attachments.length && !sticker) fail(400, 'Leere Nachricht');
   if (ch.server_id && content.includes('@everyone') && !(memberPerms(ch.server_id, req.user.id).perms & PERMS.MENTION_EVERYONE)) fail(403, 'Du darfst @everyone nicht verwenden');
+  filterMessage(ch, req.user.id, content);
   let replyTo = null;
   if (b.replyTo) {
     const r = q.get('SELECT id FROM messages WHERE id = ? AND channel_id = ?', String(b.replyTo), ch.id);
@@ -1029,6 +1034,8 @@ api.use(features);
 api.use(ai);
 api.use(admin);
 api.use(discordApi);
+api.use(helpers);
+api.use(extras);
 
 // ---------- Fehlerbehandlung ----------
 api.use((err, req, res, next) => {
