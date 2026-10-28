@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Home, Users, CircleUser, Settings, LogOut, Pencil, Hash } from 'lucide-react';
+import { Home, Users, CircleUser, Settings, LogOut, Pencil, Hash, Gift } from 'lucide-react';
 import {
-  useStore, bootstrap, openModal, showIncomingCall, openSettings, logout, openHome, isUnread,
+  useStore, bootstrap, openModal, showIncomingCall, openSettings, logout, openHome, isUnread, openRewards, SPECIAL_VIEWS,
 } from './lib/store.js';
+import { api } from './lib/api.js';
+import { playSoundboard } from './lib/sounds.js';
+import { RewardsView } from './components/Rewards.jsx';
+import { StoryViewer } from './components/Stories.jsx';
 import { useSettings, matchesShortcut, applySettings } from './lib/settings.js';
 import { voice, useVoice } from './lib/voice.js';
 import { unlockAudio } from './lib/sounds.js';
@@ -38,6 +42,7 @@ function MainContent() {
   const view = useStore((s) => s.view);
   const channel = useStore((s) => (view.channelId ? s.channels[view.channelId] : null));
   if (view.serverId === 'discover') return <DiscoverView />;
+  if (view.serverId === 'rewards') return <RewardsView />;
   if (!view.serverId) return channel ? <ChatView key={channel.id} channel={channel} /> : <FriendsView />;
   if (!channel) {
     return (
@@ -54,7 +59,7 @@ function MainContent() {
 
 function Sidebar() {
   const serverId = useStore((s) => s.view.serverId);
-  return serverId && serverId !== 'discover' ? <ServerSidebar serverId={serverId} /> : <HomeSidebar />;
+  return serverId && !SPECIAL_VIEWS.includes(serverId) ? <ServerSidebar serverId={serverId} /> : <HomeSidebar />;
 }
 
 function TitleBar() {
@@ -71,6 +76,7 @@ function MobileMe() {
       <div className="mm-actions">
         <button type="button" className="mm-btn" onClick={() => openModal('customStatus')}><Pencil size={20} /> Status festlegen</button>
         <button type="button" className="mm-btn" onClick={() => openSettings('profile')}><CircleUser size={20} /> Profil bearbeiten</button>
+        <button type="button" className="mm-btn" onClick={() => openRewards()}><Gift size={20} /> Belohnungen <span className="mm-points">🪙 {me.points}</span></button>
         <button type="button" className="mm-btn" onClick={() => openSettings('appearance')}><Settings size={20} /> Einstellungen</button>
         <button type="button" className="mm-btn danger" onClick={() => openModal('confirm', { title: 'Abmelden?', text: 'Bis bald! 👋', confirm: 'Abmelden', danger: true, onConfirm: logout })}><LogOut size={20} /> Abmelden</button>
       </div>
@@ -153,6 +159,17 @@ function useGlobalEffects() {
       else if (matchesShortcut(e, s.keyMute)) { e.preventDefault(); voice.toggleMute(); }
       else if (matchesShortcut(e, s.keyDeafen)) { e.preventDefault(); voice.toggleDeafen(); }
     };
+    const onSound = (e) => {
+      const st = useSettings.getState();
+      if (!st.soundboardEnabled || useVoice.getState().deafened) return;
+      playSoundboard(e.detail.sound, (st.soundboardVolume / 100) * (st.outputVolume / 100));
+    };
+    window.addEventListener('zync:sound', onSound);
+    // Desktop-App: erkannte Spiele als Aktivität melden
+    const offGame = window.zyncDesktop?.onGame?.((name) => {
+      if (!useSettings.getState().detectGames) return;
+      api('/me/activity', { method: 'PATCH', body: { name: name || '', source: 'desktop' } }).catch(() => {});
+    });
     const onRing = (e) => {
       const { channelId, from } = e.detail;
       if (useVoice.getState().channelId !== channelId) showIncomingCall(channelId, from);
@@ -163,6 +180,8 @@ function useGlobalEffects() {
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('zync:ring', onRing);
+      window.removeEventListener('zync:sound', onSound);
+      offGame?.();
     };
   }, [ready]);
 
@@ -213,6 +232,7 @@ export default function App() {
           <IncomingCall />
           <QuickSwitcher />
           <ScreenPicker />
+          <StoryViewer />
         </>
       )}
       <Toasts />

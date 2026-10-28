@@ -4,6 +4,37 @@ const {
 } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const { execFile } = require('node:child_process');
+
+// Bekannte Spiele (Prozessname ohne .exe, klein) → Anzeigename.
+// Es wird nur der erkannte Spielname an Zync gemeldet – keine anderen Prozesse.
+const GAMES = {
+  'minecraft.windows': 'Minecraft', minecraftlauncher: 'Minecraft', 'minecraft': 'Minecraft',
+  'fortniteclient-win64-shipping': 'Fortnite', 'valorant-win64-shipping': 'Valorant', 'league of legends': 'League of Legends',
+  cs2: 'Counter-Strike 2', csgo: 'Counter-Strike: GO', robloxplayerbeta: 'Roblox', gta5: 'GTA V', gta5_enhanced: 'GTA V',
+  rocketleague: 'Rocket League', r5apex: 'Apex Legends', 'r5apex_dx12': 'Apex Legends', overwatch: 'Overwatch 2', dota2: 'Dota 2',
+  'rainbowsix': 'Rainbow Six Siege', tslgame: 'PUBG', 'genshinimpact': 'Genshin Impact', 'yuanshen': 'Genshin Impact',
+  'eldenring': 'Elden Ring', 'cyberpunk2077': 'Cyberpunk 2077', 'among us': 'Among Us', terraria: 'Terraria',
+  'stardew valley': 'Stardew Valley', rustclient: 'Rust', 'destiny2': 'Destiny 2', 'fc25': 'EA SPORTS FC 25', 'fc26': 'EA SPORTS FC 26',
+  'cod': 'Call of Duty', 'fallguys_client_game': 'Fall Guys', 'hollow_knight': 'Hollow Knight', 'witcher3': 'The Witcher 3',
+  'deadbydaylight-win64-shipping': 'Dead by Daylight', 'palworld-win64-shipping': 'Palworld', 'helldivers2': 'Helldivers 2',
+  'escapefromtarkov': 'Escape from Tarkov', 'osu!': 'osu!', 'brawlhalla': 'Brawlhalla', 'warframe.x64': 'Warframe',
+};
+
+function detectGame() {
+  return new Promise((resolve) => {
+    const cmd = process.platform === 'win32' ? ['tasklist', ['/fo', 'csv', '/nh']] : ['ps', ['-axo', 'comm=']];
+    execFile(cmd[0], cmd[1], { windowsHide: true, maxBuffer: 8 * 1024 * 1024 }, (err, out) => {
+      if (err) return resolve(null);
+      const names = out.split(/\r?\n/).map((line) => {
+        const raw = process.platform === 'win32' ? (line.split('","')[0] || '').replace(/^"/, '') : path.basename(line.trim());
+        return raw.toLowerCase().replace(/\.exe$/, '');
+      });
+      for (const n of names) if (GAMES[n]) return resolve(GAMES[n]);
+      resolve(null);
+    });
+  });
+}
 
 const CONFIG_FILE = path.join(app.getPath('userData'), 'config.json');
 const readConfig = () => {
@@ -119,6 +150,17 @@ app.whenReady().then(() => {
 
   createWindow();
   createTray();
+
+  let lastGame;
+  const checkGame = async () => {
+    const game = await detectGame();
+    if (game !== lastGame && win && !win.isDestroyed()) {
+      lastGame = game;
+      win.webContents.send('zync:game', game);
+    }
+  };
+  win.webContents.on('did-finish-load', () => { lastGame = undefined; checkGame(); });
+  setInterval(checkGame, 30_000);
 
   globalShortcut.register('CommandOrControl+Shift+M', () => win.webContents.send('zync:shortcut', 'mute'));
   globalShortcut.register('CommandOrControl+Shift+D', () => win.webContents.send('zync:shortcut', 'deafen'));

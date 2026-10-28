@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { UPLOAD_DIR } from './db.js';
 import { api } from './api.js';
+import { startTicks } from './features.js';
 import { initRealtime } from './realtime.js';
 
 const PORT = Number(process.env.PORT || 3001);
@@ -59,6 +60,7 @@ const tls = process.env.ZYNC_TLS_CERT && process.env.ZYNC_TLS_KEY
   : null;
 const server = tls ? https.createServer(tls, app) : http.createServer(app);
 initRealtime(server);
+startTicks();
 
 server.listen(PORT, () => {
   console.log(`⚡ Zync läuft auf ${tls ? 'https' : 'http'}://localhost:${PORT}`);

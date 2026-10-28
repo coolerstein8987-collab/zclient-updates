@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Mic, MicOff, Headphones, HeadphoneOff, Video, VideoOff, ScreenShare, ScreenShareOff, PhoneOff, Maximize2, Minimize2,
-  PictureInPicture2, Settings, Volume2, Radio, Hand, Signal,
+  PictureInPicture2, Settings, Volume2, Radio, Hand, Signal, AudioLines,
 } from 'lucide-react';
+import { SoundboardPopover } from './Soundboard.jsx';
 import { useStore, openSettings, openMenu, displayName } from '../lib/store.js';
 import { useSettings, setSetting } from '../lib/settings.js';
 import { useVoice, voice } from '../lib/voice.js';
@@ -41,6 +42,18 @@ function Tile({ p, kind, channelId, focused, onFocus, serverId }) {
   const vol = useSettings((s) => s.userVolumes[p.userId] ?? 100);
   const ref = useRef(null);
   const [fs, setFs] = useState(false);
+  const [bubbles, setBubbles] = useState([]);
+  useEffect(() => {
+    if (kind === 'screen') return undefined;
+    const fn = (e) => {
+      if (e.detail.userId !== p.userId) return;
+      const id = Math.random();
+      setBubbles((b) => [...b, { id, emoji: e.detail.emoji, name: e.detail.name }]);
+      setTimeout(() => setBubbles((b) => b.filter((x) => x.id !== id)), 2200);
+    };
+    window.addEventListener('zync:sound', fn);
+    return () => window.removeEventListener('zync:sound', fn);
+  }, [kind, p.userId]);
   useEffect(() => {
     const fn = () => setFs(document.fullscreenElement === ref.current);
     document.addEventListener('fullscreenchange', fn);
@@ -88,6 +101,7 @@ function Tile({ p, kind, channelId, focused, onFocus, serverId }) {
           <Avatar user={user} userId={p.userId} size={focused ? 112 : 76} speaking={speaking} />
         </div>
       )}
+      {bubbles.map((b) => <span key={b.id} className="sound-bubble"><span>{b.emoji}</span>{b.name}</span>)}
       <div className="tile-label">
         {kind === 'screen' && <span className="live-pill">LIVE</span>}
         <span className="tile-name">{name}{kind === 'screen' ? ' – Bildschirm' : ''}</span>
@@ -160,6 +174,7 @@ export function CallControls({ compact }) {
   const v = useVoice();
   const inputMode = useSettings((s) => s.inputMode);
   const [streamOpen, setStreamOpen] = useState(false);
+  const [soundsOpen, setSoundsOpen] = useState(false);
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -191,6 +206,10 @@ export function CallControls({ compact }) {
             data-tip="Gedrückt halten zum Sprechen"
           ><Hand /></button>
         )}
+        <div className="cc-stream-wrap">
+          <button type="button" className={cx('cc-btn', soundsOpen && 'on')} onClick={() => setSoundsOpen((o) => !o)} data-tip="Soundboard"><AudioLines /></button>
+          {soundsOpen && <SoundboardPopover onClose={() => setSoundsOpen(false)} />}
+        </div>
         <button type="button" className="cc-btn" onClick={() => openSettings('voice')} data-tip="Sprach-Einstellungen"><Settings /></button>
         <button type="button" className="cc-btn hangup" onClick={() => voice.leave()} data-tip="Auflegen"><PhoneOff /></button>
       </div>

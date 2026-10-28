@@ -1,5 +1,7 @@
 import { Server } from 'socket.io';
-import { q } from './db.js';
+import { q, json } from './db.js';
+import { publicUser, selfUser } from './profile.js';
+import { claimBlocks } from './features.js';
 import { userFromToken } from './auth.js';
 import { channelForUser, dmMemberIds, friendIds, serverIdsOf } from './access.js';
 
@@ -42,6 +44,11 @@ export function initRealtime(httpServer) {
     socket.on('voice:join', ({ channelId, state } = {}, ack) => {
       const ch = channelForUser(channelId, userId);
       if (!ch || (ch.server_id && ch.type !== 'voice')) return ack?.({ error: 'Kein Zugriff' });
+      if (!ch.server_id) {
+        const other = dmMemberIds(ch.id).find((id) => id !== userId);
+        const block = other && claimBlocks(userId, other);
+        if (block && !voice.get(channelId)?.has(other)) return ack?.({ error: block.message });
+      }
       leaveVoice(userId);
       if (!voice.has(channelId)) voice.set(channelId, new Map());
       const vs = {
@@ -92,6 +99,20 @@ export function initRealtime(httpServer) {
       io.to(target.socketId).emit('rtc:signal', { from: userId, data });
     });
 
+    // Soundboard: kurzer Sound für alle im selben Sprachkanal
+    let lastSound = 0;
+    socket.on('sound:play', ({ sound, name, emoji } = {}) => {
+      const channelId = userVoice.get(userId);
+      const room = voice.get(channelId);
+      if (!room?.get(userId) || typeof sound !== 'string') return;
+      if (!/^(builtin:[a-z0-9_]+|\/uploads\/[\w.-]+)$/.test(sound)) return;
+      const now = Date.now();
+      if (now - lastSound < 1200) return;
+      lastSound = now;
+      const payload = { userId, sound, name: String(name || '').slice(0, 24), emoji: String(emoji || '🔊').slice(0, 16) };
+      for (const vs of room.values()) io.to(vs.socketId).emit('sound:play', payload);
+    });
+
     socket.on('call:decline', ({ channelId } = {}) => {
       const ch = channelForUser(channelId, userId);
       if (!ch || ch.server_id) return;
@@ -106,6 +127,13 @@ export function initRealtime(httpServer) {
       if (set && set.size === 0) {
         online.delete(userId);
         broadcastPresence(userId);
+        const u = q.get('SELECT * FROM users WHERE id = ?', userId);
+        if (json(u?.activity, null)?.source === 'desktop') {
+          q.run('UPDATE users SET activity = NULL WHERE id = ?', userId);
+          const fresh = q.get('SELECT * FROM users WHERE id = ?', userId);
+          emitToRelated(userId, 'user:update', publicUser(fresh));
+          emitToUser(userId, 'me:update', selfUser(fresh));
+        }
       }
     });
   });
@@ -154,6 +182,9 @@ export function voiceStatesFor(userId) {
   }
   return result;
 }
+
+export const onlineUserIds = () => [...online.keys()];
+export const voiceUserIds = () => [...userVoice.keys()];
 
 export function presenceOf(userId) {
   if (!online.has(userId)) return 'offline';

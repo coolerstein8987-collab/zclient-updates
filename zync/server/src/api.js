@@ -4,10 +4,14 @@ import path from 'node:path';
 import fs from 'node:fs';
 import multer from 'multer';
 import {
-  q, tx, newId, publicUser, selfUser, serializeServer, serializeChannel, serializeMember, serializeMessages, UPLOAD_DIR,
+  q, tx, newId, serializeServer, serializeChannel, serializeMember, serializeRole, serializeMessages, UPLOAD_DIR,
 } from './db.js';
+import { publicUser, selfUser, serializeClaim } from './profile.js';
+import { PERMS, ALL_PERMS, memberPerms, topPosition } from './perm.js';
+import { owns, COSMETIC_TYPES, progressQuest } from './progress.js';
+import { features, streakPayload, onMessageCreated, claimBlocks } from './features.js';
 import { hashPassword, verifyPassword, createSession, requireAuth, rateLimit } from './auth.js';
-import { channelForUser, getMember, isAdminRole, dmMemberIds, relationship, friendIds } from './access.js';
+import { channelForUser, getMember, dmMemberIds, relationship, friendIds } from './access.js';
 import {
   emitToUser, emitToServer, emitToChannel, emitToRelated, broadcastPresence, presenceOf, voiceStatesFor,
   joinServerRoom, leaveServerRoom, leaveServerVoice, dropVoiceChannel,
@@ -58,9 +62,41 @@ function cleanStyle(s) {
     effect: pick('effect'),
     nameFont: pick('nameFont'),
     nameEffect: pick('nameEffect'),
+    nameplate: pick('nameplate'),
+    frame: pick('frame'),
     vibe: pick('vibe', 80),
     vibeEmoji: pick('vibeEmoji', 16),
   };
+  return JSON.stringify(out);
+}
+
+const imgRef = (v) => (typeof v === 'string' && /^\/uploads\/[\w.-]+$/.test(v) ? v : null);
+const emojiOrImg = (v) => (typeof v === 'string' ? (imgRef(v) || (v.length <= 16 && !/[<>]/.test(v) ? v : null)) : null);
+const linkRef = (v) => (typeof v === 'string' && /^https?:\/\/[^\s<>"]{3,300}$/.test(v) ? v : null);
+const t = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+
+function cleanWidgets(list, userId) {
+  if (!Array.isArray(list)) return '[]';
+  const out = [];
+  for (const w of list.slice(0, 8)) {
+    if (!w || typeof w !== 'object') continue;
+    const base = { id: t(w.id, 24) || newId(), type: w.type, title: t(w.title, 60), theme: ['default', 'glass', 'outline', 'solid'].includes(w.theme) ? w.theme : 'default' };
+    if (w.type === 'card') {
+      out.push({ ...base, text: t(w.text, 300), icon: emojiOrImg(w.icon), image: imgRef(w.image), link: linkRef(w.link) });
+    } else if (w.type === 'links') {
+      const items = (Array.isArray(w.items) ? w.items : []).slice(0, 8).map((it) => ({ icon: emojiOrImg(it?.icon), label: t(it?.label, 30), value: t(it?.value, 60), url: linkRef(it?.url) })).filter((it) => it.label || it.value);
+      out.push({ ...base, items });
+    } else if (w.type === 'people') {
+      const items = (Array.isArray(w.items) ? w.items : []).slice(0, 8)
+        .filter((it) => typeof it?.userId === 'string' && relationship(userId, it.userId) === 1)
+        .map((it) => ({ userId: it.userId, label: t(it.label, 40) }));
+      out.push({ ...base, items });
+    } else if (w.type === 'gallery') {
+      out.push({ ...base, images: (Array.isArray(w.images) ? w.images : []).map(imgRef).filter(Boolean).slice(0, 6) });
+    } else if (w.type === 'stats' || w.type === 'games') {
+      out.push(base);
+    }
+  }
   return JSON.stringify(out);
 }
 
@@ -135,16 +171,16 @@ api.get('/bootstrap', wrap((req) => {
 
   const servers = q.all('SELECT s.* FROM servers s JOIN members m ON m.server_id = s.id WHERE m.user_id = ? ORDER BY m.joined_at', me.id)
     .map((s) => {
-      const members = q.all('SELECT * FROM members WHERE server_id = ?', s.id).map((m) => { userIds.add(m.user_id); return serializeMember(m); });
-      const channels = q.all('SELECT * FROM channels WHERE server_id = ? ORDER BY position, created_at', s.id).map(serializeChannel);
-      return { ...serializeServer(s), members, channels };
+      const payload = serverPayload(s.id);
+      payload.members.forEach((m) => userIds.add(m.userId));
+      return payload;
     });
 
   const dms = q.all(`SELECT c.* FROM channels c JOIN dm_members d ON d.channel_id = c.id WHERE d.user_id = ?`, me.id)
     .map((c) => {
       const recipients = dmMemberIds(c.id).filter((id) => id !== me.id);
       recipients.forEach((id) => userIds.add(id));
-      return { ...serializeChannel(c), recipients };
+      return { ...serializeChannel(c), recipients, streak: streakPayload(c.id) };
     });
 
   const channelIds = [...servers.flatMap((s) => s.channels.filter((c) => c.type === 'text').map((c) => c.id)), ...dms.map((d) => d.id)];
@@ -173,6 +209,11 @@ api.get('/bootstrap', wrap((req) => {
     }
   }
   presences[me.id] = me.status === 'invisible' ? 'invisible' : me.status;
+  const claims = q.all('SELECT * FROM claims WHERE from_id = ? OR to_id = ?', me.id, me.id).map(serializeClaim);
+  for (const c of claims) {
+    for (const id of [c.fromId, c.toId]) if (!users[id]) users[id] = publicUser(getUser(id));
+  }
+  progressQuest(me.id, 'login');
 
   return {
     user: selfUser(me),
@@ -186,6 +227,8 @@ api.get('/bootstrap', wrap((req) => {
     mentions,
     voice: voiceStatesFor(me.id),
     stickers: q.all('SELECT id, name, url FROM stickers WHERE owner_id = ? ORDER BY created_at', me.id),
+    sounds: q.all('SELECT id, name, emoji, url FROM sounds WHERE owner_id = ? ORDER BY created_at', me.id),
+    claims,
     rtc: rtcConfig(),
   };
 }));
@@ -212,7 +255,21 @@ api.patch('/me', wrap((req) => {
   if ('pronouns' in b) set.pronouns = str(b.pronouns, 40, { name: 'Pronomen' });
   if ('customStatus' in b) set.custom_status = str(b.customStatus, 128, { name: 'Status' });
   if ('tags' in b) set.tags = cleanTags(b.tags);
-  if ('style' in b) set.style = cleanStyle(b.style);
+  if ('style' in b) {
+    set.style = cleanStyle(b.style);
+    const st = JSON.parse(set.style);
+    for (const type of COSMETIC_TYPES) {
+      if (st[type] && !owns(u, type, st[type])) fail(403, 'Dieses Cosmetic hast du noch nicht freigeschaltet – hol es dir im Shop!');
+    }
+  }
+  if ('widgets' in b) set.widgets = cleanWidgets(b.widgets, u.id);
+  if ('tagServer' in b) {
+    if (b.tagServer) {
+      const srv = q.get('SELECT s.tag FROM servers s JOIN members m ON m.server_id = s.id WHERE s.id = ? AND m.user_id = ?', String(b.tagServer), u.id);
+      if (!srv?.tag) fail(400, 'Dieser Server hat keinen Tag');
+      set.tag_server = String(b.tagServer);
+    } else set.tag_server = null;
+  }
   if ('avatar' in b) { set.avatar = uploadUrl(b.avatar); set.avatar_crop = crop(b.avatarCrop); }
   if ('banner' in b) { set.banner = uploadUrl(b.banner); set.banner_crop = crop(b.bannerCrop); }
   if ('status' in b) {
@@ -411,18 +468,31 @@ const TEMPLATES = {
 
 function serverPayload(serverId) {
   const s = q.get('SELECT * FROM servers WHERE id = ?', serverId);
+  const memberRoles = {};
+  for (const r of q.all('SELECT user_id, role_id FROM member_roles WHERE server_id = ?', serverId)) (memberRoles[r.user_id] ||= []).push(r.role_id);
   return {
     ...serializeServer(s),
     channels: q.all('SELECT * FROM channels WHERE server_id = ? ORDER BY position, created_at', serverId).map(serializeChannel),
-    members: q.all('SELECT * FROM members WHERE server_id = ?', serverId).map(serializeMember),
+    members: q.all('SELECT * FROM members WHERE server_id = ?', serverId).map((m) => serializeMember(m, memberRoles[m.user_id] || [])),
+    roles: q.all('SELECT * FROM roles WHERE server_id = ? ORDER BY position DESC, created_at', serverId).map(serializeRole),
   };
 }
 
-function requireServerRole(serverId, userId, { admin = false, owner = false } = {}) {
-  const m = getMember(serverId, userId);
+const PERM_LABEL = {
+  [PERMS.MANAGE_SERVER]: 'Server verwalten',
+  [PERMS.MANAGE_CHANNELS]: 'Kanäle verwalten',
+  [PERMS.MANAGE_ROLES]: 'Rollen verwalten',
+  [PERMS.KICK]: 'Mitglieder entfernen',
+  [PERMS.MANAGE_MESSAGES]: 'Nachrichten verwalten',
+  [PERMS.MANAGE_NICKNAMES]: 'Spitznamen verwalten',
+};
+
+/** owner: nur Besitzer · perm: benötigtes Recht (Besitzer/Admins haben alle). */
+function requireServerRole(serverId, userId, { owner = false, perm = 0 } = {}) {
+  const { member: m, perms } = memberPerms(serverId, userId);
   if (!m) fail(404, 'Server nicht gefunden');
   if (owner && m.role !== 'owner') fail(403, 'Nur der Besitzer darf das');
-  if (admin && !isAdminRole(m.role)) fail(403, 'Dafür brauchst du Admin-Rechte');
+  if (perm && (perms & perm) !== perm) fail(403, `Dafür brauchst du das Recht „${PERM_LABEL[perm] || 'Admin'}“`);
   return m;
 }
 
@@ -457,7 +527,7 @@ api.post('/servers', rateLimit({ windowMs: 60 * 60_000, max: 20, key: (req) => r
 
 api.patch('/servers/:id', wrap((req) => {
   const sid = req.params.id;
-  requireServerRole(sid, req.user.id, { admin: true });
+  requireServerRole(sid, req.user.id, { perm: PERMS.MANAGE_SERVER });
   const b = req.body || {};
   const set = {};
   if ('name' in b) set.name = str(b.name, 60, { min: 1, name: 'Servername' });
@@ -466,15 +536,35 @@ api.patch('/servers/:id', wrap((req) => {
   if ('banner' in b) { set.banner = uploadUrl(b.banner); set.banner_crop = crop(b.bannerCrop); }
   if ('accent' in b) set.accent = hex(b.accent);
   if ('isPublic' in b) set.is_public = b.isPublic ? 1 : 0;
+  if ('tag' in b) {
+    if (b.tag) {
+      const tag = String(b.tag.text || '').trim().toUpperCase();
+      if (!/^[\p{L}\p{N}]{2,4}$/u.test(tag)) fail(400, 'Server-Tag: 2–4 Buchstaben oder Zahlen');
+      set.tag = tag;
+      set.tag_emoji = typeof b.tag.emoji === 'string' ? b.tag.emoji.slice(0, 16) : '';
+      set.tag_color = hex(b.tag.color) || '#7c5cff';
+    } else {
+      set.tag = null;
+      q.run('UPDATE users SET tag_server = NULL WHERE tag_server = ?', sid);
+    }
+  }
+  const wearers = q.all('SELECT id FROM users WHERE tag_server = ?', sid).map((r) => r.id);
   const keys = Object.keys(set);
   if (keys.length) q.run(`UPDATE servers SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`, ...Object.values(set), sid);
   const s = serializeServer(q.get('SELECT * FROM servers WHERE id = ?', sid));
   emitToServer(sid, 'server:update', s);
+  if ('name' in set || 'icon' in set || 'tag' in set) {
+    for (const uid of new Set([...wearers, ...q.all('SELECT id FROM users WHERE tag_server = ?', sid).map((r) => r.id)])) {
+      const fresh = getUser(uid);
+      emitToRelated(uid, 'user:update', publicUser(fresh));
+      emitToUser(uid, 'me:update', selfUser(fresh));
+    }
+  }
   return s;
 }));
 
 api.post('/servers/:id/invite', wrap((req) => {
-  requireServerRole(req.params.id, req.user.id, { admin: true });
+  requireServerRole(req.params.id, req.user.id, { perm: PERMS.MANAGE_SERVER });
   q.run('UPDATE servers SET invite = ? WHERE id = ?', inviteCode(), req.params.id);
   const s = serializeServer(q.get('SELECT * FROM servers WHERE id = ?', req.params.id));
   emitToServer(req.params.id, 'server:update', s);
@@ -495,6 +585,13 @@ api.delete('/servers/:id', wrap((req) => {
 function removeMember(sid, uid) {
   leaveServerVoice(uid, sid);
   q.run('DELETE FROM members WHERE server_id = ? AND user_id = ?', sid, uid);
+  q.run('DELETE FROM member_roles WHERE server_id = ? AND user_id = ?', sid, uid);
+  if (q.get('SELECT 1 FROM users WHERE id = ? AND tag_server = ?', uid, sid)) {
+    q.run('UPDATE users SET tag_server = NULL WHERE id = ?', uid);
+    const fresh = getUser(uid);
+    emitToRelated(uid, 'user:update', publicUser(fresh));
+    emitToUser(uid, 'me:update', selfUser(fresh));
+  }
   leaveServerRoom(uid, sid);
   emitToUser(uid, 'server:delete', { id: sid });
   emitToServer(sid, 'member:remove', { serverId: sid, userId: uid });
@@ -514,7 +611,7 @@ api.patch('/servers/:id/members/:userId', wrap((req) => {
   if (!target) fail(404, 'Mitglied nicht gefunden');
   const b = req.body || {};
   if ('nickname' in b) {
-    if (target.user_id !== req.user.id && !isAdminRole(me.role)) fail(403, 'Keine Berechtigung');
+    if (target.user_id !== req.user.id) requireServerRole(sid, req.user.id, { perm: PERMS.MANAGE_NICKNAMES });
     q.run('UPDATE members SET nickname = ? WHERE server_id = ? AND user_id = ?', str(b.nickname, 32) || null, sid, target.user_id);
   }
   if ('role' in b) {
@@ -540,11 +637,97 @@ api.patch('/servers/:id/members/:userId', wrap((req) => {
 
 api.delete('/servers/:id/members/:userId', wrap((req) => {
   const sid = req.params.id;
-  const me = requireServerRole(sid, req.user.id, { admin: true });
+  const me = requireServerRole(sid, req.user.id, { perm: PERMS.KICK });
   const target = getMember(sid, req.params.userId);
   if (!target) fail(404, 'Mitglied nicht gefunden');
   if (target.role === 'owner' || (target.role === 'admin' && me.role !== 'owner')) fail(403, 'Dieses Mitglied kannst du nicht entfernen');
+  if (me.role === 'member' && topPosition(sid, target.user_id) >= topPosition(sid, req.user.id)) fail(403, 'Du kannst nur Mitglieder mit niedrigerer Rolle entfernen');
   removeMember(sid, target.user_id);
+  return { ok: true };
+}));
+
+// ---------- Rollen ----------
+function cleanRole(b, isOwner) {
+  const out = {};
+  if ('name' in b) out.name = str(b.name, 32, { min: 1, name: 'Rollenname' });
+  if ('color' in b) out.color = hex(b.color);
+  if ('icon' in b) out.icon = typeof b.icon === 'string' ? b.icon.slice(0, 16) : null;
+  if ('hoist' in b) out.hoist = b.hoist ? 1 : 0;
+  if ('permissions' in b) {
+    let p = Number(b.permissions) & ALL_PERMS;
+    if (!isOwner) p &= ~PERMS.ADMIN;
+    out.permissions = p;
+  }
+  return out;
+}
+
+function emitMember(sid, uid) {
+  const m = getMember(sid, uid);
+  if (m) emitToServer(sid, 'member:update', serializeMember(m));
+}
+
+api.post('/servers/:id/roles', wrap((req) => {
+  const sid = req.params.id;
+  const me = requireServerRole(sid, req.user.id, { perm: PERMS.MANAGE_ROLES });
+  if (q.get('SELECT COUNT(*) AS n FROM roles WHERE server_id = ?', sid).n >= 50) fail(400, 'Maximal 50 Rollen');
+  const r = { name: 'Neue Rolle', color: '#99aab5', icon: '', hoist: 0, permissions: 0, ...cleanRole(req.body || {}, me.role === 'owner') };
+  const pos = (q.get('SELECT MAX(position) AS p FROM roles WHERE server_id = ?', sid).p ?? -1) + 1;
+  const id = newId();
+  q.run('INSERT INTO roles (id, server_id, name, color, icon, position, permissions, hoist, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', id, sid, r.name, r.color, r.icon, pos, r.permissions, r.hoist, Date.now());
+  const role = serializeRole(q.get('SELECT * FROM roles WHERE id = ?', id));
+  emitToServer(sid, 'role:update', role);
+  return role;
+}));
+
+function roleForManager(req) {
+  const role = q.get('SELECT * FROM roles WHERE id = ?', req.params.roleId);
+  if (!role) fail(404, 'Rolle nicht gefunden');
+  const me = requireServerRole(role.server_id, req.user.id, { perm: PERMS.MANAGE_ROLES });
+  if (me.role === 'member' && role.position >= topPosition(role.server_id, req.user.id)) fail(403, 'Du kannst nur Rollen unter deiner höchsten Rolle bearbeiten');
+  return { role, me };
+}
+
+api.patch('/roles/:roleId', wrap((req) => {
+  const { role, me } = roleForManager(req);
+  const set = cleanRole(req.body || {}, me.role === 'owner');
+  const keys = Object.keys(set);
+  if (keys.length) q.run(`UPDATE roles SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`, ...Object.values(set), role.id);
+  const out = serializeRole(q.get('SELECT * FROM roles WHERE id = ?', role.id));
+  emitToServer(role.server_id, 'role:update', out);
+  return out;
+}));
+
+api.delete('/roles/:roleId', wrap((req) => {
+  const { role } = roleForManager(req);
+  const holders = q.all('SELECT user_id FROM member_roles WHERE role_id = ?', role.id).map((r) => r.user_id);
+  q.run('DELETE FROM roles WHERE id = ?', role.id);
+  emitToServer(role.server_id, 'role:delete', { id: role.id, serverId: role.server_id });
+  holders.forEach((uid) => emitMember(role.server_id, uid));
+  return { ok: true };
+}));
+
+api.post('/servers/:id/roles/reorder', wrap((req) => {
+  const sid = req.params.id;
+  requireServerRole(sid, req.user.id, { perm: PERMS.MANAGE_ROLES });
+  const ids = Array.isArray(req.body.ids) ? req.body.ids.map(String) : [];
+  tx(() => ids.forEach((rid, i) => q.run('UPDATE roles SET position = ? WHERE id = ? AND server_id = ?', ids.length - i, rid, sid)));
+  const roles = q.all('SELECT * FROM roles WHERE server_id = ? ORDER BY position DESC', sid).map(serializeRole);
+  roles.forEach((r) => emitToServer(sid, 'role:update', r));
+  return roles;
+}));
+
+api.put('/roles/:roleId/members/:userId', wrap((req) => {
+  const { role } = roleForManager(req);
+  if (!getMember(role.server_id, req.params.userId)) fail(404, 'Mitglied nicht gefunden');
+  q.run('INSERT OR IGNORE INTO member_roles (server_id, user_id, role_id) VALUES (?, ?, ?)', role.server_id, req.params.userId, role.id);
+  emitMember(role.server_id, req.params.userId);
+  return { ok: true };
+}));
+
+api.delete('/roles/:roleId/members/:userId', wrap((req) => {
+  const { role } = roleForManager(req);
+  q.run('DELETE FROM member_roles WHERE role_id = ? AND user_id = ?', role.id, req.params.userId);
+  emitMember(role.server_id, req.params.userId);
   return { ok: true };
 }));
 
@@ -603,7 +786,7 @@ const channelName = (type, v) => {
 
 api.post('/servers/:id/channels', wrap((req) => {
   const sid = req.params.id;
-  requireServerRole(sid, req.user.id, { admin: true });
+  requireServerRole(sid, req.user.id, { perm: PERMS.MANAGE_CHANNELS });
   const type = req.body.type === 'voice' ? 'voice' : 'text';
   const max = q.get('SELECT MAX(position) AS p FROM channels WHERE server_id = ?', sid).p ?? -1;
   const id = newId();
@@ -619,7 +802,7 @@ api.post('/servers/:id/channels', wrap((req) => {
 api.patch('/channels/:id', wrap((req) => {
   const ch = channelForUser(req.params.id, req.user.id);
   if (!ch || !ch.server_id) fail(404, 'Kanal nicht gefunden');
-  requireServerRole(ch.server_id, req.user.id, { admin: true });
+  requireServerRole(ch.server_id, req.user.id, { perm: PERMS.MANAGE_CHANNELS });
   const b = req.body || {};
   const set = {};
   if ('name' in b) set.name = channelName(ch.type, b.name);
@@ -635,7 +818,7 @@ api.patch('/channels/:id', wrap((req) => {
 
 api.post('/servers/:id/channels/reorder', wrap((req) => {
   const sid = req.params.id;
-  requireServerRole(sid, req.user.id, { admin: true });
+  requireServerRole(sid, req.user.id, { perm: PERMS.MANAGE_CHANNELS });
   const ids = Array.isArray(req.body.ids) ? req.body.ids.map(String) : [];
   tx(() => ids.forEach((cid, i) => q.run('UPDATE channels SET position = ? WHERE id = ? AND server_id = ?', i, cid, sid)));
   const channels = q.all('SELECT * FROM channels WHERE server_id = ? ORDER BY position, created_at', sid).map(serializeChannel);
@@ -646,7 +829,7 @@ api.post('/servers/:id/channels/reorder', wrap((req) => {
 api.delete('/channels/:id', wrap((req) => {
   const ch = channelForUser(req.params.id, req.user.id);
   if (!ch || !ch.server_id) fail(404, 'Kanal nicht gefunden');
-  requireServerRole(ch.server_id, req.user.id, { admin: true });
+  requireServerRole(ch.server_id, req.user.id, { perm: PERMS.MANAGE_CHANNELS });
   if (q.get('SELECT COUNT(*) AS n FROM channels WHERE server_id = ?', ch.server_id).n <= 1) fail(400, 'Der letzte Kanal kann nicht gelöscht werden');
   dropVoiceChannel(ch.id);
   q.run('DELETE FROM channels WHERE id = ?', ch.id);
@@ -662,6 +845,8 @@ function accessibleChannel(req, { write = false } = {}) {
   if (write && !ch.server_id) {
     const other = dmMemberIds(ch.id).find((id) => id !== req.user.id);
     if (other && (relationship(other, req.user.id) === 2 || relationship(req.user.id, other) === 2)) fail(403, 'Nachricht konnte nicht zugestellt werden (blockiert).');
+    const block = other && claimBlocks(req.user.id, other);
+    if (block) fail(423, block.message);
   }
   return ch;
 }
@@ -706,6 +891,11 @@ api.post('/channels/:id/messages', msgLimit, wrap((req) => {
     width: Number(a?.width) || undefined,
     height: Number(a?.height) || undefined,
     spoiler: !!a?.spoiler,
+    ...(a?.voice ? {
+      voice: true,
+      duration: Math.min(600, Math.max(0, Number(a.duration) || 0)),
+      waveform: (Array.isArray(a.waveform) ? a.waveform : []).slice(0, 64).map((v) => Math.min(100, Math.max(0, Math.round(Number(v) || 0)))),
+    } : {}),
   })).filter((a) => a.url);
   let sticker = null;
   if (b.sticker) {
@@ -713,6 +903,7 @@ api.post('/channels/:id/messages', msgLimit, wrap((req) => {
     if (!/^(builtin:[a-z0-9_]+|\/uploads\/[\w.-]+)$/.test(sticker)) fail(400, 'Ungültiger Sticker');
   }
   if (!content && !attachments.length && !sticker) fail(400, 'Leere Nachricht');
+  if (ch.server_id && content.includes('@everyone') && !(memberPerms(ch.server_id, req.user.id).perms & PERMS.MENTION_EVERYONE)) fail(403, 'Du darfst @everyone nicht verwenden');
   let replyTo = null;
   if (b.replyTo) {
     const r = q.get('SELECT id FROM messages WHERE id = ? AND channel_id = ?', String(b.replyTo), ch.id);
@@ -726,6 +917,7 @@ api.post('/channels/:id/messages', msgLimit, wrap((req) => {
   q.run('INSERT INTO read_states (user_id, channel_id, last_read) VALUES (?, ?, ?) ON CONFLICT(user_id, channel_id) DO UPDATE SET last_read = excluded.last_read', req.user.id, ch.id, id);
   const msg = serializeMessages([q.get('SELECT * FROM messages WHERE id = ?', id)])[0];
   emitToChannel(ch, 'message:create', { ...msg, nonce: b.nonce });
+  onMessageCreated(ch, req.user.id, msg);
   return msg;
 }));
 
@@ -734,7 +926,7 @@ function ownMessage(req, { allowAdmin = false } = {}) {
   if (!m) fail(404, 'Nachricht nicht gefunden');
   const ch = channelForUser(m.channel_id, req.user.id);
   if (!ch) fail(404, 'Nachricht nicht gefunden');
-  const admin = ch.server_id && isAdminRole(ch.member?.role);
+  const admin = ch.server_id && !!(memberPerms(ch.server_id, req.user.id).perms & PERMS.MANAGE_MESSAGES);
   if (m.author_id !== req.user.id && !(allowAdmin && admin)) fail(403, 'Keine Berechtigung');
   return { m, ch, admin };
 }
@@ -764,7 +956,7 @@ api.post('/messages/:id/pin', wrap((req) => {
   const m = q.get('SELECT * FROM messages WHERE id = ?', req.params.id);
   const ch = m && channelForUser(m.channel_id, req.user.id);
   if (!ch) fail(404, 'Nachricht nicht gefunden');
-  if (ch.server_id && !isAdminRole(ch.member.role)) fail(403, 'Nur Admins können anpinnen');
+  if (ch.server_id && !(memberPerms(ch.server_id, req.user.id).perms & PERMS.MANAGE_MESSAGES)) fail(403, 'Dafür brauchst du das Recht „Nachrichten verwalten“');
   q.run('UPDATE messages SET pinned = ? WHERE id = ?', m.pinned ? 0 : 1, m.id);
   const msg = serializeMessages([q.get('SELECT * FROM messages WHERE id = ?', m.id)])[0];
   emitToChannel(ch, 'message:update', msg);
@@ -788,7 +980,8 @@ api.put('/messages/:id/reactions/:emoji', wrap((req) => {
   const { m, ch, emoji } = reactionTarget(req);
   const distinct = q.get('SELECT COUNT(DISTINCT emoji) AS n FROM reactions WHERE message_id = ?', m.id).n;
   if (distinct >= 20 && !q.get('SELECT 1 FROM reactions WHERE message_id = ? AND emoji = ?', m.id, emoji)) fail(400, 'Maximal 20 verschiedene Reaktionen');
-  q.run('INSERT OR IGNORE INTO reactions (message_id, user_id, emoji, created_at) VALUES (?, ?, ?, ?)', m.id, req.user.id, emoji, Date.now());
+  const added = q.run('INSERT OR IGNORE INTO reactions (message_id, user_id, emoji, created_at) VALUES (?, ?, ?, ?)', m.id, req.user.id, emoji, Date.now());
+  if (added.changes) progressQuest(req.user.id, 'react');
   emitReactions(m, ch);
   return { ok: true };
 }));
@@ -808,6 +1001,9 @@ api.post('/channels/:id/ack', wrap((req) => {
   emitToUser(req.user.id, 'read:update', { channelId: ch.id, messageId: last });
   return { ok: true };
 }));
+
+// ---------- Flammen, Stories, Aufgaben, Shop, Claims … ----------
+api.use(features);
 
 // ---------- Fehlerbehandlung ----------
 api.use((err, req, res, next) => {

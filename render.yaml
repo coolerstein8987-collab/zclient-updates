@@ -14,3 +14,5 @@ services:
         value: 22.22.0
       - key: ZYNC_TRUST_PROXY
         value: "1"
+      - key: ZYNC_OWNERS
+        value: coolersteinyt

@@ -53,6 +53,10 @@ export const useStore = create(() => ({
   typing: {},
   voice: {},
   stickers: [],
+  sounds: [],
+  stories: {},
+  quests: null,
+  claims: {},
   rtc: { iceServers: [] },
   ...initialUi(),
 }));
@@ -79,6 +83,28 @@ export const dmList = (s) =>
   Object.values(s.channels).filter((c) => c.type === 'dm').sort((a, b) => (s.lastMessages[b.id] || b.id).localeCompare(s.lastMessages[a.id] || a.id));
 
 export const dmPartner = (s, channel) => s.users[channel?.recipients?.[0]];
+
+/** Rollen eines Mitglieds, höchste zuerst. */
+export const memberRoles = (s, serverId, userId) => {
+  const srv = s.servers[serverId];
+  const ids = srv?.members[userId]?.roles || [];
+  return ids.map((id) => srv.roles?.[id]).filter(Boolean).sort((a, b) => b.position - a.position);
+};
+export const roleColor = (s, serverId, userId) => (serverId ? memberRoles(s, serverId, userId).find((r) => r.color && r.color !== '#99aab5')?.color : null) || null;
+
+/** Stories gruppiert nach Nutzer (eigene zuerst, dann ungesehene). */
+export function storyGroups(s) {
+  const now = Date.now();
+  const byUser = {};
+  for (const st of Object.values(s.stories)) {
+    if (st.expiresAt < now) continue;
+    (byUser[st.userId] ||= []).push(st);
+  }
+  return Object.entries(byUser).map(([userId, list]) => {
+    list.sort((a, b) => a.createdAt - b.createdAt);
+    return { userId, stories: list, unseen: list.some((x) => !x.viewed), latest: list[list.length - 1].createdAt };
+  }).sort((a, b) => (a.userId === s.me?.id ? -1 : b.userId === s.me?.id ? 1 : (b.unseen - a.unseen) || (b.latest - a.latest)));
+}
 
 export const displayName = (s, userId, serverId) => {
   const u = s.users[userId];
@@ -131,20 +157,45 @@ function hardLogout() {
 }
 setUnauthorizedHandler(hardLogout);
 
+export const SPECIAL_VIEWS = ['discover', 'rewards'];
+
+function normalizeServer(srv) {
+  const { members = [], roles = [], ...rest } = srv;
+  return {
+    ...rest,
+    members: Object.fromEntries(members.map((m) => [m.userId, { ...m, roles: m.roles || [] }])),
+    roles: Object.fromEntries(roles.map((r) => [r.id, r])),
+  };
+}
+
+export async function loadStories() {
+  try {
+    const d = await api('/stories');
+    set((s) => ({ stories: Object.fromEntries(d.stories.map((x) => [x.id, x])), users: { ...d.users, ...s.users } }));
+  } catch { /* egal */ }
+}
+
+export async function loadQuests() {
+  try {
+    const d = await api('/quests');
+    set({ quests: { ...d, loadedAt: Date.now() } });
+  } catch { /* egal */ }
+}
+
 export async function bootstrap() {
   try {
     const d = await api('/bootstrap');
     const servers = {};
     const channels = {};
     for (const s of d.servers) {
-      const { channels: chs, members, ...rest } = s;
-      servers[s.id] = { ...rest, members: Object.fromEntries(members.map((m) => [m.userId, m])) };
+      const { channels: chs, ...rest } = s;
+      servers[s.id] = normalizeServer(rest);
       chs.forEach((c) => { channels[c.id] = c; });
     }
     d.dms.forEach((c) => { channels[c.id] = c; });
     const relationships = Object.fromEntries(d.relationships.map((r) => [r.id, r]));
     let { view } = get();
-    if (view.serverId && view.serverId !== 'discover' && !servers[view.serverId]) view = { serverId: null, channelId: null };
+    if (view.serverId && !SPECIAL_VIEWS.includes(view.serverId) && !servers[view.serverId]) view = { serverId: null, channelId: null };
     if (view.channelId && !channels[view.channelId]) view = { ...view, channelId: null };
     set({
       ready: true,
@@ -161,13 +212,17 @@ export async function bootstrap() {
       mentions: d.mentions,
       voice: d.voice,
       stickers: d.stickers,
+      sounds: d.sounds || [],
+      claims: Object.fromEntries((d.claims || []).map((c) => [c.id, c])),
       rtc: d.rtc,
       view,
       messages: {},
       hasMore: {},
     });
-    if (view.serverId && view.serverId !== 'discover' && !view.channelId) openServer(view.serverId);
+    if (view.serverId && !SPECIAL_VIEWS.includes(view.serverId) && !view.channelId) openServer(view.serverId);
     connectSocket();
+    loadStories();
+    loadQuests();
   } catch (e) {
     if (e.status !== 401) set({ bootError: e.message });
     throw e;
@@ -185,6 +240,10 @@ function setView(view) {
 }
 
 export const openHome = () => setView({ serverId: null, channelId: null });
+export const openRewards = (tab = 'quests') => {
+  setView({ serverId: 'rewards', channelId: null, tab });
+  set({ mobilePane: 'chat' });
+};
 export const openDiscover = () => {
   setView({ serverId: 'discover', channelId: null });
   set({ mobilePane: 'chat' });
@@ -301,6 +360,8 @@ function notify(msg, ch) {
   const mentioned = !isDm && (msg.content.includes(`@${s.me.username}`) || msg.content.includes('@everyone'));
   if (!(isDm && st.notifDMs) && !(mentioned && st.notifMentions) && !st.notifAllMessages) return;
   if (s.me.status === 'dnd') return;
+  const claim = s.users[s.me.id]?.claim;
+  if (claim?.active && msg.authorId !== claim.fromId && msg.authorId !== claim.toId) return;
   if (mentioned) sounds.mention(); else sounds.message();
   const title = isDm ? displayName(s, msg.authorId) : `${displayName(s, msg.authorId, ch.serverId)} in #${ch.name}`;
   const body = msg.content || (msg.sticker ? 'hat einen Sticker gesendet' : 'hat eine Datei gesendet');
@@ -441,12 +502,12 @@ export function connectSocket() {
   });
 
   socket.on('server:create', ({ server, users, presences, voice }) => {
-    const { channels: chs, members, ...rest } = server;
+    const { channels: chs, ...rest } = server;
     set((s) => {
       const channels = { ...s.channels };
       chs.forEach((c) => { channels[c.id] = c; });
       return {
-        servers: { ...s.servers, [server.id]: { ...rest, members: Object.fromEntries(members.map((m) => [m.userId, m])) } },
+        servers: { ...s.servers, [server.id]: normalizeServer(rest) },
         serverOrder: s.serverOrder.includes(server.id) ? s.serverOrder : [...s.serverOrder, server.id],
         channels,
         users: { ...users, ...s.users },
@@ -457,6 +518,55 @@ export function connectSocket() {
   });
 
   socket.on('server:update', (srv) => set((s) => (s.servers[srv.id] ? { servers: { ...s.servers, [srv.id]: { ...s.servers[srv.id], ...srv } } } : {})));
+
+  socket.on('role:update', (role) => set((s) => {
+    const srv = s.servers[role.serverId];
+    if (!srv) return {};
+    return { servers: { ...s.servers, [srv.id]: { ...srv, roles: { ...srv.roles, [role.id]: role } } } };
+  }));
+  socket.on('role:delete', ({ id, serverId }) => set((s) => {
+    const srv = s.servers[serverId];
+    if (!srv) return {};
+    const roles = { ...srv.roles };
+    delete roles[id];
+    return { servers: { ...s.servers, [serverId]: { ...srv, roles } } };
+  }));
+
+  socket.on('streak:update', ({ channelId, streak }) => set((s) => (s.channels[channelId] ? { channels: { ...s.channels, [channelId]: { ...s.channels[channelId], streak } } } : {})));
+
+  socket.on('story:create', ({ story, user }) => set((s) => ({ stories: { ...s.stories, [story.id]: story }, users: { ...s.users, [user.id]: user } })));
+  socket.on('story:delete', ({ id }) => set((s) => {
+    const stories = { ...s.stories };
+    delete stories[id];
+    return { stories };
+  }));
+  socket.on('story:view', ({ storyId }) => set((s) => (s.stories[storyId] ? { stories: { ...s.stories, [storyId]: { ...s.stories[storyId], viewCount: (s.stories[storyId].viewCount || 0) + 1 } } } : {})));
+
+  socket.on('quests:update', (q) => set((s) => ({ quests: { ...s.quests, ...q, loadedAt: Date.now() } })));
+
+  socket.on('claim:update', ({ claim, user }) => {
+    const prev = get().claims[claim.id];
+    set((s) => ({ claims: { ...s.claims, [claim.id]: claim }, users: { ...s.users, [user.id]: user } }));
+    const me = get().me.id;
+    if (!prev && claim.status === 'pending' && claim.toId === me) {
+      sounds.friend();
+      toast(`🔒 ${user.displayName} möchte dich claimen – schau in „Freunde → Ausstehend“`, 'friend', 6000);
+    }
+    if (prev?.status === 'pending' && claim.status === 'active') toast(`🔒 Claim mit ${user.displayName} ist aktiv!`, 'success');
+  });
+  socket.on('claim:remove', ({ id, by, status }) => {
+    const c = get().claims[id];
+    set((s) => {
+      const claims = { ...s.claims };
+      delete claims[id];
+      return { claims };
+    });
+    if (c && by !== get().me.id) toast(status === 'active' ? '🔓 Der Claim wurde beendet' : '🔓 Claim-Anfrage abgelehnt', 'info');
+  });
+
+  socket.on('sound:create', (snd) => set((s) => (s.sounds.some((x) => x.id === snd.id) ? {} : { sounds: [...s.sounds, snd] })));
+  socket.on('sound:delete', ({ id }) => set((s) => ({ sounds: s.sounds.filter((x) => x.id !== id) })));
+  socket.on('sound:play', (p) => window.dispatchEvent(new CustomEvent('zync:sound', { detail: p })));
 
   socket.on('server:delete', ({ id }) => {
     const wasViewing = get().view.serverId === id;

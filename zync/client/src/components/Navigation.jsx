@@ -1,19 +1,21 @@
 import { useMemo, useState } from 'react';
 import {
   Plus, Compass, Users, Hash, Volume2, ChevronDown, ChevronRight, Settings, UserPlus, LogOut, FolderPlus, X, Mic, MicOff,
-  Headphones, HeadphoneOff, PhoneOff, Video, ScreenShare, Search, Bell, Pencil, Copy, Link, Signal, MessageSquarePlus, Trash2, CheckCheck,
+  Headphones, HeadphoneOff, PhoneOff, Video, ScreenShare, Search, Bell, Pencil, Copy, Link, Signal, MessageSquarePlus, Trash2, CheckCheck, Gift, Gamepad2,
 } from 'lucide-react';
 import {
-  useStore, openHome, openServer, openChannel, openDm, openDiscover, openModal, openSettings, openMenu, openPopout,
+  useStore, openHome, openServer, openChannel, openDm, openDiscover, openRewards, openModal, openSettings, openMenu, openPopout,
   isUnread, serverChannels, dmList, dmPartner, run, toast, ack,
 } from '../lib/store.js';
 import { useSettings, setSetting } from '../lib/settings.js';
 import { useVoice, voice } from '../lib/voice.js';
 import { api } from '../lib/api.js';
-import { isAdminRole } from '../lib/perm.js';
+import { PERMS, permsOf } from '../lib/perm.js';
 import { cx, STATUS_LABEL, copyText } from '../lib/format.js';
 import { Avatar, ServerIcon, NameTag, CroppedImage } from './Avatar.jsx';
 import { Logo } from './Logo.jsx';
+import { claimableCount } from './Rewards.jsx';
+import { StreakChip, ActivityLine } from './Social.jsx';
 
 // ---------- Server-Leiste ----------
 function RailItem({ active, unread, mentions, tip, onClick, onContextMenu, children, className }) {
@@ -47,7 +49,7 @@ export function ServerRail() {
     openMenu(e, [
       { label: 'Als gelesen markieren', icon: <CheckCheck size={16} />, onClick: () => serverChannels(useStore.getState(), srv.id).forEach((c) => ack(c.id)) },
       { label: 'Leute einladen', icon: <UserPlus size={16} />, onClick: () => openModal('invite', { serverId: srv.id }) },
-      isAdminRole(role) && { label: 'Servereinstellungen', icon: <Settings size={16} />, onClick: () => openModal('serverSettings', { serverId: srv.id }) },
+      (permsOf(useStore.getState(), srv.id, me.id) & (PERMS.MANAGE_SERVER | PERMS.MANAGE_ROLES | PERMS.MANAGE_CHANNELS)) !== 0 && { label: 'Servereinstellungen', icon: <Settings size={16} />, onClick: () => openModal('serverSettings', { serverId: srv.id }) },
       { label: 'Server-ID kopieren', icon: <Copy size={16} />, onClick: () => copyText(srv.id) },
       role !== 'owner' && { divider: true },
       role !== 'owner' && { label: 'Server verlassen', icon: <LogOut size={16} />, danger: true, onClick: () => openModal('confirm', { title: `${srv.name} verlassen?`, text: 'Du kannst nur mit einer neuen Einladung zurückkehren.', confirm: 'Verlassen', danger: true, onConfirm: () => run(() => api(`/servers/${srv.id}/leave`, { method: 'POST' }), 'Server verlassen') }) },
@@ -125,8 +127,25 @@ const STATUS_OPTIONS = [
   { id: 'invisible', desc: 'Du wirst als offline angezeigt' },
 ];
 
+function ClaimBanner() {
+  const claim = useStore((s) => s.users[s.me.id]?.claim);
+  const users = useStore((s) => s.users);
+  const meId = useStore((s) => s.me.id);
+  if (!claim) return null;
+  const other = claim.fromId === meId ? claim.toId : claim.fromId;
+  const t = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  return (
+    <button type="button" className={cx('claim-banner', claim.active && 'live')} onClick={(e) => openPopout(other, e)}>
+      <Avatar userId={other} size={22} decoration={false} />
+      <span>🔒 Geclaimt mit <b>{users[other]?.displayName}</b></span>
+      <small>{claim.start === claim.end ? 'ganztägig' : `${t(claim.start)}–${t(claim.end)}`}</small>
+    </button>
+  );
+}
+
 export function UserPanel() {
   const me = useStore((s) => s.me);
+  const myUser = useStore((s) => s.users[s.me.id]);
   const v = useVoice();
   const statusMenu = (e) => openMenu(e, [
     ...STATUS_OPTIONS.map((o) => ({
@@ -143,12 +162,13 @@ export function UserPanel() {
   return (
     <div className="user-panel-wrap">
       <VoicePanel />
+      <ClaimBanner />
       <div className="user-panel">
         <button type="button" className="up-me" onClick={statusMenu}>
           <Avatar userId={me.id} size={36} showStatus status={me.status === 'invisible' ? 'offline' : me.status} />
           <div className="up-text">
             <div className="up-name">{me.displayName}</div>
-            <div className="up-sub">{me.customStatus || STATUS_LABEL[me.status]}</div>
+            <div className="up-sub">{myUser?.activity?.name ? <><Gamepad2 size={11} /> {myUser.activity.name}</> : me.customStatus || STATUS_LABEL[me.status]}</div>
           </div>
         </button>
         <button type="button" className={cx('icon-btn', (v.muted || v.noMic) && 'danger-on')} data-tip={v.muted ? 'Stummschaltung aufheben' : 'Stummschalten'} onClick={() => voice.toggleMute()}>
@@ -171,7 +191,9 @@ export function HomeSidebar() {
   const readStates = useStore((s) => s.readStates);
   const mentions = useStore((s) => s.mentions);
   const users = useStore((s) => s.users);
-  const pending = useStore((s) => Object.values(s.relationships).filter((r) => r.type === 3).length);
+  const pending = useStore((s) => Object.values(s.relationships).filter((r) => r.type === 3).length + Object.values(s.claims).filter((c) => c.status === 'pending' && c.toId === s.me.id).length);
+  const claimable = useStore((s) => claimableCount(s.quests));
+  const points = useStore((s) => s.me.points);
   const hidden = useSettings((s) => s.hiddenDms);
   const dms = useMemo(() => dmList({ channels, lastMessages }), [channels, lastMessages]).filter((c) => !hidden.includes(c.id) || c.id === view.channelId || (mentions[c.id] || 0) > 0);
   const st = { lastMessages, readStates };
@@ -190,6 +212,10 @@ export function HomeSidebar() {
         <button type="button" className={cx('nav-item big', view.serverId === 'discover' && 'active')} onClick={openDiscover}>
           <Compass size={22} /> Entdecken
         </button>
+        <button type="button" className={cx('nav-item big rewards-nav', view.serverId === 'rewards' && 'active')} onClick={() => openRewards()}>
+          <Gift size={22} /> Belohnungen
+          {claimable > 0 ? <span className="badge-count inline glow">{claimable}</span> : <span className="nav-points">🪙 {points}</span>}
+        </button>
         <div className="section-title">
           <span>Direktnachrichten</span>
           <button type="button" className="icon-btn xs" data-tip="Neue Nachricht" onClick={() => openModal('newDm')}><MessageSquarePlus size={16} /></button>
@@ -200,7 +226,7 @@ export function HomeSidebar() {
           const u = users[uid];
           const unread = isUnread(st, c.id) && (mentions[c.id] || 0) > 0;
           return (
-            <div key={c.id} className={cx('dm-item', view.channelId === c.id && 'active', unread && 'unread')}>
+            <div key={c.id} className={cx('dm-item', view.channelId === c.id && 'active', unread && 'unread', u?.style?.nameplate && `np np-${u.style.nameplate}`)}>
               <button type="button" className="dm-main" onClick={() => openDm(c.id)} onContextMenu={(e) => openMenu(e, [
                 { label: 'Profil', onClick: () => openPopout(uid, e) },
                 { label: 'Als gelesen markieren', icon: <CheckCheck size={16} />, onClick: () => ack(c.id) },
@@ -209,8 +235,9 @@ export function HomeSidebar() {
                 <Avatar userId={uid} size={34} showStatus />
                 <div className="dm-text">
                   <NameTag userId={uid} className="dm-name" />
-                  {u?.customStatus && <div className="dm-sub">{u.customStatus}</div>}
+                  {u?.activity?.name ? <div className="dm-sub"><ActivityLine activity={u.activity} short /></div> : u?.customStatus && <div className="dm-sub">{u.customStatus}</div>}
                 </div>
+                <StreakChip streak={c.streak} size="sm" />
                 {(mentions[c.id] || 0) > 0 && <span className="badge-count inline">{mentions[c.id]}</span>}
               </button>
               <button type="button" className="dm-close" aria-label="Schließen" onClick={() => { setSetting((s) => ({ hiddenDms: [...s.hiddenDms, c.id] })); if (view.channelId === c.id) openHome(); }}><X size={14} /></button>
@@ -268,13 +295,15 @@ export function ServerSidebar({ serverId }) {
   }, [list]);
   if (!server) return <div className="sidebar" />;
   const role = server.members[meId]?.role;
-  const admin = isAdminRole(role);
+  const myPerms = permsOf(useStore.getState(), serverId, meId);
+  const admin = !!(myPerms & PERMS.MANAGE_CHANNELS);
+  const canSettings = (myPerms & (PERMS.MANAGE_SERVER | PERMS.MANAGE_ROLES | PERMS.MANAGE_CHANNELS)) !== 0;
   const st = { lastMessages, readStates };
   const toggleCat = (name) => setSetting((s) => ({ collapsed: { ...s.collapsed, [`${serverId}:${name}`]: !s.collapsed[`${serverId}:${name}`] } }));
 
   const headMenu = [
     { label: 'Leute einladen', icon: <UserPlus size={16} />, onClick: () => openModal('invite', { serverId }), accent: true },
-    admin && { label: 'Servereinstellungen', icon: <Settings size={16} />, onClick: () => openModal('serverSettings', { serverId }) },
+    canSettings && { label: 'Servereinstellungen', icon: <Settings size={16} />, onClick: () => openModal('serverSettings', { serverId }) },
     admin && { label: 'Kanal erstellen', icon: <Plus size={16} />, onClick: () => openModal('channel', { serverId }) },
     admin && { label: 'Kategorie erstellen', icon: <FolderPlus size={16} />, onClick: () => openModal('channel', { serverId, categoryOnly: true }) },
     { label: 'Spitzname ändern', icon: <Pencil size={16} />, onClick: () => openModal('nickname', { serverId, userId: meId }) },

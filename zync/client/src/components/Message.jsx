@@ -11,6 +11,9 @@ import { isEmojiOnly, QUICK_REACTIONS } from '../lib/emoji.js';
 import { stickerFromRef, StickerArt } from '../lib/stickers.jsx';
 import { cx, formatTime, formatStamp, formatSize, copyText } from '../lib/format.js';
 import { Avatar, NameTag, StillImage } from './Avatar.jsx';
+import { VoicePlayer } from './VoiceMessage.jsx';
+import { ServerTagChip } from './Social.jsx';
+import { StreakStoryArt, openStoryComposer } from './Stories.jsx';
 import { ExpressionPicker, rememberEmoji } from './ExpressionPicker.jsx';
 
 const JOIN_PHRASES = [
@@ -47,7 +50,8 @@ function Attachment({ a, onOpen }) {
   const [revealed, setRevealed] = useState(!a.spoiler || spoilers === 'always');
   const isImg = a.type?.startsWith('image/');
   const isVideo = a.type?.startsWith('video/');
-  const isAudio = a.type?.startsWith('audio/');
+  const isAudio = a.type?.startsWith('audio/') || a.voice;
+  if (a.voice) return <VoicePlayer a={a} />;
   const max = { small: 240, medium: 400, large: 560 }[imageSize];
   if ((isImg || isVideo) && showEmbeds) {
     const ratio = a.width && a.height ? a.width / a.height : 16 / 9;
@@ -198,6 +202,24 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
     onMention: (id, e) => openPopout(id, e, serverId),
   };
 
+  if (msg.type === 'streak') {
+    const count = Number(msg.content) || 0;
+    const channel = useStore.getState().channels[msg.channelId];
+    const partnerId = channel?.recipients?.[0];
+    return (
+      <div className="msg streak-milestone" data-id={msg.id}>
+        <div className="sm-card">
+          <StreakStoryArt authorId={me.id} partnerId={partnerId} count={count} compact />
+          <div className="sm-text">
+            <b>🔥 {count}er-Flamme!</b>
+            <span>Ihr habt euch {count} Tage am Stück geschrieben. Beide bekommen +25 🪙</span>
+            <button type="button" className="btn primary sm" onClick={() => openStoryComposer({ kind: 'streak', channelId: msg.channelId, streak: { partnerId, count } })}>Als Story teilen ✨</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (msg.type === 'join') {
     const phrase = JOIN_PHRASES[parseInt(msg.id.slice(-3), 36) % JOIN_PHRASES.length];
     return (
@@ -269,6 +291,7 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
         {!grouped && (
           <div className="msg-head">
             <NameTag user={author} userId={msg.authorId} serverId={serverId} className="msg-author" onClick={(e) => openPopout(msg.authorId, e, serverId)} />
+            {author?.serverTag && <ServerTagChip tag={author.serverTag} className="sm" />}
             {roleIcon}
             <time title={new Date(msg.createdAt).toLocaleString('de-DE')}>{formatStamp(msg.createdAt)}</time>
             {msg.pinned && <Pin size={12} className="pin-ico" />}

@@ -45,6 +45,31 @@ Läuft im **Browser**, als **Handy-App** und als **Desktop-App (Windows/macOS/Li
 - **Namens-Stil**: Schriftart (Elegant, Script, Pixel, Marker …), Effekt (Glühen, Schimmern, Regenbogen, Welle), Farbverlauf
 - Status: Online, Abwesend, Nicht stören, Unsichtbar
 
+**Social & Fun (neu)**
+- 🔥 **Flammen (Streaks)** wie bei Snapchat/TikTok: schreibt euch jeden Tag gegenseitig → die Flamme wächst. ⏳ warnt, bevor sie erlischt.
+  Meilensteine (3, 5, 7, 10, 30, 100 …) feiern mit animierter Karte, +25 Punkten und „Als Story teilen“.
+- 📸 **Stories** (24 h): Foto, Video oder Text mit Hintergründen, Schriften und verschiebbaren Stickern.
+  Vollbild-Viewer mit Fortschrittsbalken, Tippen/Halten, Reaktionen, Antworten per DM und Aufruf-Liste.
+  Flammen-Stories mit Animation: beide Avatare, lodernde Flamme, hochzählende Tage.
+- 🎯 **Tägliche Aufgaben & Punkte**: Check-in, Nachrichten, Reaktionen, Call-Minuten, Story, Flamme, Sticker, Sprachnachricht + Tagesbonus.
+- 🛍️ **Shop – Free-to-Play, kein Pay2Win**: Avatar-Dekos (Krone, Blitz, Galaxie, Regenbogen …), Profil-Effekte (Konfetti, Nordlicht …),
+  Namens-Effekte (Neon, Feuer, Regenbogen …), Schriften, **Namensschilder** und **Profilrahmen** (Glas, Pixel, Spitze, Engelsflügel, Hologramm).
+  Alles nur mit erspielten Punkten, kein Echtgeld.
+- 🏅 **Badges & Statistiken**: Zync Owner, „Seit X Tagen/Monaten/Jahren dabei“, Stunden im Call (1h–4000h), gezockte Stunden,
+  entdeckte Spiele, Nachrichten, beste Flamme, Aufgaben, Stories, Server-Gründer … mit Stufen Bronze → Legende und Fortschrittsbalken.
+- 🎮 **Aktivität**: „Spielt gerade Minecraft“ – manuell oder automatisch erkannt in der Desktop-App (zählt für Spielzeit-Badges).
+- 🧩 **Profil-Widgets**: Karten mit Text & Bild, Socials (Instagram, Roblox, TikTok …), „Meine Leute“ (Freunde mit Label wie
+  „Mein BF 💕“ oder „Minecraft Atze ⛏️“), Galerie, Erfolge und Gaming. Dazu ein vollständiges Profil mit Tabs.
+- 🔗 **Verlinkungen in der Bio**: `@benutzername` wird nur verlinkt, wenn ihr befreundet seid.
+- 🔒 **Claimen**: Zwei Freunde reservieren sich ein tägliches Zeitfenster (z. B. 09:00–21:00). Beide müssen zustimmen; in der Zeit
+  können andere nicht schreiben oder anrufen. Jeder kann jederzeit beenden.
+- 🏷️ **Server-Tags**: Server legen einen Tag an (z. B. `🎣 HXH`), Mitglieder tragen ihn neben ihrem Namen. Klick darauf zeigt den
+  Server – öffentliche Server kann man direkt beitreten.
+- 🎭 **Rollen**: eigene Rollen mit Farbe, Icon, eigener Gruppe in der Mitgliederliste und Rechten (Server/Kanäle/Rollen verwalten,
+  Kicken, Nachrichten verwalten, @everyone, Spitznamen).
+- 🎤 **Sprachnachrichten** mit Live-Wellenform beim Aufnehmen, Player mit Spulen und 1×/1,5×/2×.
+- 📯 **Soundboard** im Call: 12 eingebaute Sounds (Airhorn, Ba-dum-tss, Tada, Sad Trombone, Applaus …) + eigene Sounds.
+
 **Einstellungen**
 - **Darstellung**: 11 Themes (Nacht, AMOLED, Graphit, Hell, Aurora, Ozean, Wald, Sakura, Sunset, Cyber, Latte), Akzentfarben mit
   Verlauf, Schriftarten, UI-/Chat-Skalierung, Eckenrundung, Sättigung, Dichte, Sprechblasen-Modus, **PC-/Handy-Ansicht erzwingen**
@@ -88,6 +113,8 @@ zync.deine-domain.de {
 | `ZYNC_DATA` | Ordner für Datenbank und Uploads (Standard `server/data`) |
 | `ZYNC_TLS_CERT`, `ZYNC_TLS_KEY` | Pfade zu Zertifikat/Schlüssel → Zync spricht direkt HTTPS |
 | `ZYNC_TRUST_PROXY=1` | Hinter einem Reverse-Proxy setzen (korrekte IPs fürs Rate-Limit) |
+| `ZYNC_OWNERS` | Benutzernamen mit „Zync Owner“-Badge, z. B. `coolersteinyt` (mehrere mit Komma) |
+| `ZYNC_TZ` | Zeitzone für Flammen, Aufgaben-Reset und Claims (Standard `Europe/Berlin`) |
 | `ZYNC_TURN_URL`, `ZYNC_TURN_USER`, `ZYNC_TURN_PASS` | TURN-Server für Anrufe durch strenge Firewalls/Mobilfunk (z. B. [coturn](https://github.com/coturn/coturn)) |
 
 Anrufe und Streams laufen direkt zwischen den Teilnehmern (WebRTC, Peer-to-Peer) – der Server vermittelt nur.

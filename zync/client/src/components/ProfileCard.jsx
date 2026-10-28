@@ -1,71 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MessageCircle, UserPlus, Check, Clock, MoreHorizontal, Pencil, Phone, Crown, Shield, Ban, UserMinus, Copy } from 'lucide-react';
-import { Avatar, CroppedImage, NameTag, ServerIcon } from './Avatar.jsx';
-import { useStore, openDmWith, openSettings, openMenu, toast, run, sendMessage, dmList, openPopout } from '../lib/store.js';
+import {
+  MessageCircle, UserPlus, Check, Clock, MoreHorizontal, Pencil, Phone, Crown, Shield, Ban, UserMinus, Copy, Lock, Maximize2, Unlock,
+} from 'lucide-react';
+import { Avatar, CroppedImage, NameTag } from './Avatar.jsx';
+import {
+  useStore, openDmWith, openSettings, openMenu, toast, run, sendMessage, dmList, openPopout, openModal, memberRoles, storyGroups,
+} from '../lib/store.js';
 import { useSettings } from '../lib/settings.js';
 import { api } from '../lib/api.js';
 import { renderMarkdown } from '../lib/markdown.jsx';
 import { useFloating, useTilt, useClickOutside } from './ui.jsx';
 import { cx, formatDate, hashColor, STATUS_LABEL, copyText } from '../lib/format.js';
 import { voice } from '../lib/voice.js';
-
-export const DECORATIONS = [
-  { id: '', name: 'Keine' },
-  { id: 'aurora', name: 'Aurora-Ring' },
-  { id: 'neon', name: 'Neon-Puls' },
-  { id: 'fire', name: 'Flammen' },
-  { id: 'sakura', name: 'Sakura' },
-  { id: 'halo', name: 'Heiligenschein' },
-  { id: 'catears', name: 'Katzenohren' },
-  { id: 'glitch', name: 'Glitch' },
-  { id: 'orbit', name: 'Orbit' },
-  { id: 'hearts', name: 'Herzen' },
-];
-
-export const EFFECTS = [
-  { id: '', name: 'Kein Effekt' },
-  { id: 'sparkles', name: 'Funkeln ✨' },
-  { id: 'snow', name: 'Schnee ❄️' },
-  { id: 'hearts', name: 'Herzen 💕' },
-  { id: 'stars', name: 'Sternenhimmel 🌌' },
-  { id: 'petals', name: 'Kirschblüten 🌸' },
-  { id: 'embers', name: 'Glut 🔥' },
-  { id: 'bubbles', name: 'Blasen 🫧' },
-];
-
-export const NAME_FONTS = [
-  { id: '', name: 'Standard' },
-  { id: 'grotesk', name: 'Grotesk' },
-  { id: 'serif', name: 'Elegant' },
-  { id: 'mono', name: 'Mono' },
-  { id: 'script', name: 'Script' },
-  { id: 'pixel', name: 'Pixel' },
-  { id: 'marker', name: 'Marker' },
-];
-
-export const NAME_EFFECTS = [
-  { id: '', name: 'Keiner' },
-  { id: 'glow', name: 'Glühen' },
-  { id: 'shimmer', name: 'Schimmern' },
-  { id: 'rainbow', name: 'Regenbogen' },
-  { id: 'wave', name: 'Welle' },
-];
+import { ServerTagChip, BadgeRow, ProfileWidgets, ActivityLine, ClaimChip, StreakChip, endClaim } from './Social.jsx';
+import { openStories } from './Stories.jsx';
 
 export function Tag({ label }) {
   return <span className="tag-chip" style={{ '--tag': hashColor(label.toLowerCase(), 75, 65) }}>{label}</span>;
 }
 
-function EffectLayer({ effect }) {
+export function EffectLayer({ effect }) {
   const items = useMemo(() => Array.from({ length: 18 }, (_, i) => ({
     left: `${(i * 53) % 100}%`,
     delay: `${-((i * 7) % 11) * 0.7}s`,
     dur: `${6 + ((i * 13) % 7)}s`,
     size: 0.6 + ((i * 17) % 10) / 10,
+    hue: (i * 47) % 360,
   })), []);
   if (!effect) return null;
   return (
     <div className={`pc-effect fx-${effect}`} aria-hidden>
-      {items.map((it, i) => <i key={i} style={{ left: it.left, animationDelay: it.delay, animationDuration: it.dur, '--s': it.size }} />)}
+      {items.map((it, i) => <i key={i} style={{ left: it.left, animationDelay: it.delay, animationDuration: it.dur, '--s': it.size, '--h': it.hue }} />)}
     </div>
   );
 }
@@ -79,48 +44,71 @@ export function ProfileBanner({ user, height }) {
   );
 }
 
-export function ProfileCard({ userId, user: override, serverId, extra, actions = true, onAction, className, preview = false }) {
+/** Bio mit Markdown – @Erwähnungen werden nur zu Freunden des Profil-Inhabers verlinkt. */
+export function BioText({ user }) {
+  const markdown = useSettings((s) => s.markdown);
+  const users = useStore((s) => s.users);
+  const ctx = {
+    markdown,
+    spoilers: 'click',
+    resolveUser: (name) => {
+      const id = user.bioLinks?.[name.toLowerCase()];
+      return id ? (users[id] || { id, displayName: name }) : null;
+    },
+    nameOf: (id) => users[id]?.displayName,
+    onMention: (id, e) => openPopout(id, e),
+  };
+  return <>{renderMarkdown(user.bio, ctx)}</>;
+}
+
+export function ProfileCard({ userId, user: override, serverId, extra, actions = true, onAction, className, preview = false, hideWidgets = false }) {
   const storeUser = useStore((s) => s.users[userId]);
   const me = useStore((s) => s.me);
   const presence = useStore((s) => s.presences[userId]);
   const rel = useStore((s) => s.relationships[userId]?.type || 0);
   const member = useStore((s) => (serverId ? s.servers[serverId]?.members[userId] : null));
-  const servers = useStore((s) => s.servers);
-  const { tilt3d, tiltStrength, markdown } = useSettings();
+  const server = useStore((s) => (serverId ? s.servers[serverId] : null));
+  const roles = useMemo(() => (server ? memberRoles({ servers: { [serverId]: server } }, serverId, userId) : []), [server, serverId, userId]);
+  const dm = useStore((s) => dmList(s).find((c) => c.recipients?.[0] === userId));
+  const stories = useStore((s) => s.stories);
+  const hasStory = useMemo(() => storyGroups({ stories, me }).find((g) => g.userId === userId), [stories, me, userId]);
+  const { tilt3d, tiltStrength } = useSettings();
   const tiltRef = useTilt(tiltStrength * 0.5, tilt3d && !preview);
   const user = override || storeUser;
   if (!user) return null;
   const st = user.style || {};
   const isMe = user.id === me?.id;
   const status = isMe ? me.status : presence;
-  const badges = [];
-  if (user.createdAt && user.createdAt < Date.UTC(2027, 0, 1)) badges.push({ icon: '🚀', label: 'Zync-Pionier' });
-  if (Object.values(servers).some((s) => s.ownerId === user.id)) badges.push({ icon: '👑', label: 'Server-Gründer' });
-  if (rel === 1) badges.push({ icon: '🤝', label: 'Freund' });
-  if (user.tags?.length >= 5) badges.push({ icon: '🏷️', label: 'Tag-Sammler' });
 
   return (
     <div
       ref={tiltRef}
-      className={cx('profile-card', className, preview && 'preview')}
+      className={cx('profile-card', className, preview && 'preview', st.frame && `frame-${st.frame}`)}
       style={{ '--p1': st.accent1 || '#7c5cff', '--p2': st.accent2 || '#00d4ff' }}
     >
       <div className="pc-inner">
         <ProfileBanner user={user} />
         <div className="pc-head">
-          <Avatar user={user} userId={user.id} size={92} showStatus status={status === 'invisible' ? 'offline' : status} className="pc-avatar" />
-          {badges.length > 0 && (
-            <div className="pc-badges">
-              {badges.map((b) => <span key={b.label} className="badge" data-tip={b.label}>{b.icon}</span>)}
-            </div>
-          )}
+          <button
+            type="button"
+            className={cx('pc-avatar-btn', hasStory && (hasStory.unseen ? 'story-ring' : 'story-ring seen'))}
+            onClick={() => hasStory && !preview && openStories(user.id)}
+            data-tip={hasStory ? 'Story ansehen' : undefined}
+          >
+            <Avatar user={user} userId={user.id} size={92} showStatus status={status === 'invisible' ? 'offline' : status} className="pc-avatar" />
+          </button>
+          <BadgeRow badges={user.badges} max={7} userId={user.id} />
         </div>
         <div className="pc-body">
           <div className="pc-names">
-            <NameTag user={user} serverId={serverId} className="pc-display" />
+            <div className="pc-name-row">
+              <NameTag user={user} serverId={serverId} className="pc-display" />
+              {user.serverTag && <ServerTagChip tag={user.serverTag} />}
+            </div>
             <div className="pc-username">
               @{user.username}
               {user.pronouns && <><span className="dot-sep">•</span>{user.pronouns}</>}
+              {!isMe && dm?.streak?.count > 0 && <StreakChip streak={dm.streak} size="sm" />}
             </div>
           </div>
           {(user.customStatus || st.vibe) && (
@@ -129,13 +117,16 @@ export function ProfileCard({ userId, user: override, serverId, extra, actions =
               {st.vibe && <div className="pc-vibe"><span>{st.vibeEmoji || '🎧'}</span> {st.vibe}</div>}
             </div>
           )}
+          {user.claim && <ClaimChip claim={user.claim} viewerId={user.id} />}
+          <ActivityLine activity={user.activity} />
           {user.tags?.length > 0 && <div className="pc-tags">{user.tags.map((t) => <Tag key={t} label={t} />)}</div>}
           {user.bio && (
             <div className="pc-section">
               <h4>Über mich</h4>
-              <div className="pc-bio">{renderMarkdown(user.bio, { markdown, spoilers: 'click' })}</div>
+              <div className="pc-bio"><BioText user={user} /></div>
             </div>
           )}
+          {!hideWidgets && <ProfileWidgets user={user} />}
           <div className="pc-section pc-since">
             <div>
               <h4>Mitglied seit</h4>
@@ -148,51 +139,57 @@ export function ProfileCard({ userId, user: override, serverId, extra, actions =
               </div>
             )}
           </div>
-          {member && member.role !== 'member' && (
+          {member && (member.role !== 'member' || roles.length > 0) && (
             <div className="pc-section">
-              <h4>Rolle</h4>
-              <span className={cx('role-pill', member.role)}>{member.role === 'owner' ? <><Crown size={12} /> Besitzer</> : <><Shield size={12} /> Admin</>}</span>
+              <h4>Rollen</h4>
+              <div className="role-chips">
+                {member.role === 'owner' && <span className="role-pill owner"><Crown size={12} /> Besitzer</span>}
+                {member.role === 'admin' && <span className="role-pill admin"><Shield size={12} /> Admin</span>}
+                {roles.map((r) => <span key={r.id} className="role-pill" style={{ '--rc': r.color || '#99aab5' }}><i className="rp-dot" />{r.icon && <span>{r.icon}</span>}{r.name}</span>)}
+              </div>
             </div>
           )}
           {extra && (extra.mutualServers?.length > 0 || extra.mutualFriends?.length > 0) && (
             <div className="pc-section pc-mutuals">
-              {extra.mutualServers?.length > 0 && (
-                <div>
-                  <h4>{extra.mutualServers.length} gemeinsame Server</h4>
-                  <div className="mutual-row">{extra.mutualServers.slice(0, 6).map((id) => servers[id] && <span key={id} data-tip={servers[id].name}><ServerIcon server={servers[id]} size={28} /></span>)}</div>
-                </div>
-              )}
               {extra.mutualFriends?.length > 0 && (
                 <div>
                   <h4>{extra.mutualFriends.length} gemeinsame Freunde</h4>
-                  <div className="mutual-row">{extra.mutualFriends.slice(0, 6).map((id) => <span key={id}><Avatar userId={id} size={28} decoration={false} /></span>)}</div>
+                  <div className="mutual-row">{extra.mutualFriends.slice(0, 8).map((id) => <span key={id}><Avatar userId={id} size={28} decoration={false} /></span>)}</div>
                 </div>
               )}
             </div>
           )}
-          {actions && !preview && <ProfileActions user={user} rel={rel} isMe={isMe} onAction={onAction} />}
+          {actions && !preview && <ProfileActions user={user} rel={rel} isMe={isMe} onAction={onAction} serverId={serverId} />}
           {preview && status && <div className="pc-preview-status"><span className={`status-dot inline st-${status === 'invisible' ? 'offline' : status}`} /> {STATUS_LABEL[status]}</div>}
         </div>
       </div>
       <EffectLayer effect={st.effect} />
+      {st.frame === 'wings' && <><span className="wing left" /><span className="wing right" /></>}
     </div>
   );
 }
 
-function ProfileActions({ user, rel, isMe, onAction }) {
+function ProfileActions({ user, rel, isMe, onAction, serverId }) {
   const [busy, setBusy] = useState(false);
+  const myClaim = useStore((s) => s.users[s.me.id]?.claim);
   const act = async (fn) => {
     setBusy(true);
     try { await fn(); } catch { /* run() zeigt Toast */ } finally { setBusy(false); }
   };
+  const full = () => { onAction?.(); openModal('profile', { userId: user.id, serverId }); };
   if (isMe) {
     return (
       <div className="pc-actions">
-        <button type="button" className="btn primary block" onClick={() => { onAction?.(); openSettings('profile'); }}><Pencil size={16} /> Profil bearbeiten</button>
+        <button type="button" className="btn primary" onClick={() => { onAction?.(); openSettings('profile'); }}><Pencil size={16} /> Profil bearbeiten</button>
+        <button type="button" className="btn secondary icon-only" data-tip="Vollständiges Profil" onClick={full}><Maximize2 size={16} /></button>
       </div>
     );
   }
+  const claimWithThem = myClaim && (myClaim.fromId === user.id || myClaim.toId === user.id) ? myClaim : null;
   const more = (e) => openMenu(e, [
+    { label: 'Vollständiges Profil', icon: <Maximize2 size={16} />, onClick: full },
+    rel === 1 && !claimWithThem && { label: 'Claimen …', icon: <Lock size={16} />, onClick: () => { onAction?.(); openModal('claim', { userId: user.id }); } },
+    claimWithThem && { label: 'Claim beenden', icon: <Unlock size={16} />, onClick: () => endClaim(claimWithThem) },
     rel === 1 && { label: 'Freund entfernen', icon: <UserMinus size={16} />, danger: true, onClick: () => run(() => api(`/relationships/${user.id}`, { method: 'DELETE' }), 'Freund entfernt') },
     rel !== 2 && { label: 'Blockieren', icon: <Ban size={16} />, danger: true, onClick: () => run(() => api(`/relationships/${user.id}/block`, { method: 'POST' }), 'Nutzer blockiert') },
     rel === 2 && { label: 'Entblocken', icon: <Ban size={16} />, onClick: () => run(() => api(`/relationships/${user.id}`, { method: 'DELETE' }), 'Blockierung aufgehoben') },
@@ -226,7 +223,7 @@ export function ProfilePopout() {
   const popout = useStore((s) => s.popout);
   const close = () => useStore.setState({ popout: null });
   const [extra, setExtra] = useState(null);
-  const [ref, pos] = useFloating(popout?.rect, { width: 340, height: 520 });
+  const [ref, pos] = useFloating(popout?.rect, { width: 340, height: 560 });
   const [msg, setMsg] = useState('');
   const me = useStore((s) => s.me);
   useClickOutside(ref, close, !!popout);

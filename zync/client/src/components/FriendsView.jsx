@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Users, MessageCircle, MoreVertical, Check, X, Search, Phone, UserMinus, Ban, Copy, Compass, Volume2, ArrowLeft } from 'lucide-react';
-import { useStore, openDmWith, openMenu, run, toast, openDiscover, dmList, openPopout, openChannel } from '../lib/store.js';
+import { Users, MessageCircle, MoreVertical, Check, X, Search, Phone, UserMinus, Ban, Copy, Compass, Volume2, ArrowLeft, Lock } from 'lucide-react';
+import { useStore, openDmWith, openMenu, run, toast, openDiscover, dmList, openPopout, openChannel, openModal } from '../lib/store.js';
+import { StoryBar } from './Stories.jsx';
+import { StreakChip, ClaimRequests, ActivityLine, ServerTagChip } from './Social.jsx';
 import { api } from '../lib/api.js';
 import { voice } from '../lib/voice.js';
 import { cx, STATUS_LABEL, copyText } from '../lib/format.js';
@@ -64,6 +66,7 @@ function AddFriend() {
 function FriendRow({ rel }) {
   const user = useStore((s) => s.users[rel.id]);
   const status = useStore((s) => s.presences[rel.id] || 'offline');
+  const dm = useStore((s) => dmList(s).find((c) => c.recipients?.[0] === rel.id));
   if (!user) return null;
   const act = (fn, msg) => run(fn, msg).catch(() => {});
   const call = async () => {
@@ -74,16 +77,18 @@ function FriendRow({ rel }) {
   const more = (e) => openMenu(e, [
     { label: 'Profil', onClick: () => openPopout(user.id, e) },
     { label: 'Sprachanruf', icon: <Phone size={16} />, onClick: call },
+    { label: 'Claimen …', icon: <Lock size={16} />, onClick: () => openModal('claim', { userId: user.id }) },
     { divider: true },
     { label: 'Freund entfernen', icon: <UserMinus size={16} />, danger: true, onClick: () => act(() => api(`/relationships/${user.id}`, { method: 'DELETE' }), 'Freund entfernt') },
     { label: 'Blockieren', icon: <Ban size={16} />, danger: true, onClick: () => act(() => api(`/relationships/${user.id}/block`, { method: 'POST' }), 'Blockiert') },
   ]);
-  const sub = rel.type === 3 ? 'Eingehende Freundschaftsanfrage' : rel.type === 4 ? 'Ausgehende Freundschaftsanfrage' : rel.type === 2 ? 'Blockiert' : (user.customStatus || STATUS_LABEL[status]);
+  const sub = rel.type === 3 ? 'Eingehende Freundschaftsanfrage' : rel.type === 4 ? 'Ausgehende Freundschaftsanfrage' : rel.type === 2 ? 'Blockiert'
+    : user.activity?.name ? <ActivityLine activity={user.activity} short /> : (user.customStatus || STATUS_LABEL[status]);
   return (
     <div className="friend-row" onClick={() => rel.type === 1 && openDmWith(user.id)} onContextMenu={rel.type === 1 ? more : undefined}>
       <Avatar user={user} userId={user.id} size={40} showStatus={rel.type === 1} />
       <div className="fr-text">
-        <div className="fr-name"><NameTag user={user} /> <span className="fr-username">@{user.username}</span></div>
+        <div className="fr-name"><NameTag user={user} />{user.serverTag && <ServerTagChip tag={user.serverTag} className="sm" interactive={false} />} {rel.type === 1 && <StreakChip streak={dm?.streak} size="sm" />} <span className="fr-username">@{user.username}</span></div>
         <div className="fr-sub">{sub}</div>
       </div>
       <div className="fr-actions" onClick={(e) => e.stopPropagation()}>
@@ -144,7 +149,9 @@ export function FriendsView() {
   const relationships = useStore((s) => s.relationships);
   const presences = useStore((s) => s.presences);
   const users = useStore((s) => s.users);
-  const pending = Object.values(relationships).filter((r) => r.type === 3).length;
+  const claimsPending = useStore((s) => Object.values(s.claims).filter((c) => c.status === 'pending' && c.toId === s.me.id).length);
+  const anyClaims = useStore((s) => Object.values(s.claims).some((c) => c.status === 'pending'));
+  const pending = Object.values(relationships).filter((r) => r.type === 3).length + claimsPending;
   const list = useMemo(() => {
     const all = Object.values(relationships);
     const t = term.toLowerCase();
@@ -173,13 +180,15 @@ export function FriendsView() {
       </header>
       <div className="friends-body">
         <div className="friends-main">
+          {tab !== 'add' && <StoryBar />}
           {tab === 'add' ? <AddFriend /> : (
             <>
+              {tab === 'pending' && <ClaimRequests />}
               <div className="friends-search"><input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Suchen" /><Search size={16} /></div>
               <div className="friends-count">{label} — {list.length}</div>
               <div className="friends-list">
                 {list.map((r) => <FriendRow key={r.id} rel={r} />)}
-                {list.length === 0 && (
+                {list.length === 0 && !(tab === 'pending' && anyClaims) && (
                   <div className="empty-state">
                     <div className="empty-art">{tab === 'pending' ? '📭' : tab === 'blocked' ? '🛡️' : '🌱'}</div>
                     <p>{tab === 'online' ? 'Gerade ist niemand online. Zeit für eine Pause? ☕' : tab === 'pending' ? 'Keine offenen Anfragen.' : tab === 'blocked' ? 'Du hast niemanden blockiert.' : 'Noch keine Freunde – füge jemanden hinzu!'}</p>

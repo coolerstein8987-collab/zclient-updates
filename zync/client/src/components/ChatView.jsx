@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Hash, Pin, Search, Users, Phone, Video, ArrowLeft, UserCircle2, X, ChevronDown, Upload } from 'lucide-react';
-import { useStore, loadMessages, ack, displayName, dmPartner, toast, openPopout } from '../lib/store.js';
+import { useStore, loadMessages, ack, displayName, dmPartner, toast, openPopout, openMenu } from '../lib/store.js';
 import { useSettings } from '../lib/settings.js';
 import { api } from '../lib/api.js';
 import { voice } from '../lib/voice.js';
@@ -13,6 +13,23 @@ import { Avatar, NameTag } from './Avatar.jsx';
 import { MembersPanel } from './MembersPanel.jsx';
 import { ProfileCard } from './ProfileCard.jsx';
 import { DmCallStage } from './Call.jsx';
+import { StreakChip, ClaimChip, ActivityLine } from './Social.jsx';
+import { openStoryComposer } from './Stories.jsx';
+
+function streakMenu(e, channel, partner, meId) {
+  const st = channel.streak;
+  openMenu(e, [
+    { custom: (
+      <div className="streak-info">
+        <div className="si-big">🔥 {st.count}</div>
+        <b>{st.count === 1 ? '1 Tag' : `${st.count} Tage`} Flamme mit {partner?.displayName}</b>
+        <span>Rekord: {st.best} · Heute: {st.today?.[meId] ? 'Du ✅' : 'Du ⏳'} {st.today?.[partner?.id] ? `${partner?.displayName} ✅` : `${partner?.displayName} ⏳`}</span>
+        {st.expiring && <span className="si-warn">⏳ Schreibt euch heute, sonst erlischt die Flamme!</span>}
+      </div>
+    ) },
+    { label: 'Als Story teilen ✨', onClick: () => openStoryComposer({ kind: 'streak', channelId: channel.id, streak: { partnerId: partner?.id, count: st.count } }) },
+  ]);
+}
 import { Spinner } from './ui.jsx';
 
 function TypingIndicator({ channel }) {
@@ -253,8 +270,10 @@ export function ChatView({ channel }) {
             <Avatar user={partner} userId={partner?.id} size={30} showStatus decoration={false} />
             <div>
               <div className="ch-name">{title}</div>
-              <div className="ch-sub">{partner?.customStatus || STATUS_LABEL[partnerStatus || 'offline']}</div>
+              <div className="ch-sub">{partner?.activity?.name ? <ActivityLine activity={partner.activity} short /> : partner?.customStatus || STATUS_LABEL[partnerStatus || 'offline']}</div>
             </div>
+            <span onClick={(e) => e.stopPropagation()}><StreakChip streak={channel.streak} onClick={(e) => streakMenu(e, channel, partner, useStore.getState().me.id)} /></span>
+            {partner?.claim && <span className="ch-claim"><ClaimChip claim={partner.claim} viewerId={partner.id} /></span>}
           </div>
         ) : (
           <div className="ch-title">

@@ -102,6 +102,9 @@ export const DEFAULTS = {
   streamAudio: true,
   codec: 'auto',
   userVolumes: {},
+  soundboardVolume: 60,
+  soundboardEnabled: true,
+  detectGames: true,
   // Tastenkürzel
   keyMute: 'Ctrl+Shift+KeyM',
   keyDeafen: 'Ctrl+Shift+KeyD',

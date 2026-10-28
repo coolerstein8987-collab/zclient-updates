@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PlusCircle, Smile, Sticker as StickerIcon, X, EyeOff, Eye, FileText, SendHorizontal, Image as ImageIcon } from 'lucide-react';
+import { PlusCircle, Smile, Sticker as StickerIcon, X, EyeOff, Eye, FileText, SendHorizontal, Image as ImageIcon, Mic } from 'lucide-react';
 import { useStore, sendMessage, sendTyping, resetTypingThrottle, toast, displayName } from '../lib/store.js';
 import { useSettings } from '../lib/settings.js';
 import { uploadFile, imageSize } from '../lib/api.js';
@@ -8,6 +8,7 @@ import { cx, formatSize } from '../lib/format.js';
 import { Avatar } from './Avatar.jsx';
 import { ExpressionPicker, rememberEmoji } from './ExpressionPicker.jsx';
 import { Spinner } from './ui.jsx';
+import { VoiceRecorder } from './VoiceMessage.jsx';
 
 const MAX_LEN = 4000;
 let attSeq = 0;
@@ -135,6 +136,21 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
   };
 
   const uploading = items.some((i) => !i.done && !i.error);
+  const [recording, setRecording] = useState(false);
+  const [sendingVoice, setSendingVoice] = useState(false);
+  const sendVoice = async (file, duration, waveform) => {
+    setRecording(false);
+    setSendingVoice(true);
+    try {
+      const up = await uploadFile(file);
+      await sendMessage(cid, { attachments: [{ ...up, voice: true, duration, waveform }], replyTo });
+      useStore.setState((s) => ({ replyTo: { ...s.replyTo, [cid]: null } }));
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setSendingVoice(false);
+    }
+  };
 
   const submit = () => {
     if (disabled) return;
@@ -233,6 +249,7 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
           ))}
         </div>
       )}
+      {recording ? <VoiceRecorder onSend={sendVoice} onCancel={() => setRecording(false)} /> : (
       <div className={cx('composer', disabled && 'disabled')}>
         <button type="button" className="composer-btn" onClick={() => fileRef.current?.click()} aria-label="Datei hochladen" data-tip="Datei / Foto hochladen" disabled={disabled}><PlusCircle size={22} /></button>
         <input ref={fileRef} type="file" multiple hidden onChange={(e) => { add([...e.target.files]); e.target.value = ''; }} />
@@ -255,10 +272,17 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
         <button type="button" className={cx('composer-btn gif-btn', picker === 'gif' && 'active')} onClick={() => setPicker(picker === 'gif' ? null : 'gif')} data-tip="GIFs" aria-label="GIFs"><ImageIcon size={22} /></button>
         <button type="button" className={cx('composer-btn', picker === 'sticker' && 'active')} onClick={() => setPicker(picker === 'sticker' ? null : 'sticker')} data-tip="Sticker" aria-label="Sticker"><StickerIcon size={22} /></button>
         <button type="button" className={cx('composer-btn emoji-btn', picker === 'emoji' && 'active')} onClick={() => setPicker(picker === 'emoji' ? null : 'emoji')} data-tip="Emoji" aria-label="Emoji"><Smile size={22} /></button>
-        <button type="button" className="composer-send" onClick={submit} disabled={disabled || (!text.trim() && !items.some((i) => i.done))} aria-label="Senden">
-          {uploading ? <Spinner size={18} /> : <SendHorizontal size={20} />}
-        </button>
+        {!text.trim() && !items.length && !disabled ? (
+          <button type="button" className="composer-send mic" onClick={() => setRecording(true)} disabled={sendingVoice} aria-label="Sprachnachricht aufnehmen" data-tip="Sprachnachricht">
+            {sendingVoice ? <Spinner size={18} /> : <Mic size={20} />}
+          </button>
+        ) : (
+          <button type="button" className="composer-send" onClick={submit} disabled={disabled || (!text.trim() && !items.some((i) => i.done))} aria-label="Senden">
+            {uploading ? <Spinner size={18} /> : <SendHorizontal size={20} />}
+          </button>
+        )}
       </div>
+      )}
     </div>
   );
 }

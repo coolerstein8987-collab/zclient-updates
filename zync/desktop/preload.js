@@ -13,6 +13,11 @@ contextBridge.exposeInMainWorld('zyncDesktop', {
     ipcRenderer.on('zync:shortcut', fn);
     return () => ipcRenderer.removeListener('zync:shortcut', fn);
   },
+  onGame: (cb) => {
+    const fn = (_e, name) => cb(name);
+    ipcRenderer.on('zync:game', fn);
+    return () => ipcRenderer.removeListener('zync:game', fn);
+  },
   setBadge: (n) => ipcRenderer.send('zync:badge', n),
   setIconPng: (dataUrl) => ipcRenderer.send('zync:icon', dataUrl),
   setServer: (url) => ipcRenderer.invoke('zync:set-server', url),

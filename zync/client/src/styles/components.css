@@ -36,7 +36,7 @@ html.glow .avatar.speaking .avatar-img { box-shadow: 0 0 0 2.5px var(--bg-2), 0 
 .pc-banner { position: relative; height: 0; padding-bottom: 40%; overflow: hidden; }
 .pc-banner .crop-frame { position: absolute; inset: 0; }
 .pc-head { position: relative; height: 54px; }
-.pc-avatar { position: absolute !important; left: 16px; top: -50px; }
+.pc-avatar { position: relative; }
 .pc-avatar .avatar-img { box-shadow: 0 0 0 6px color-mix(in srgb, var(--bg-1) 88%, var(--p1)); }
 .pc-avatar .status-dot { border-color: color-mix(in srgb, var(--bg-1) 88%, var(--p1)); border-width: 4px; }
 .pc-badges { position: absolute; right: 12px; top: 10px; display: flex; gap: 2px; padding: 4px 6px; border-radius: 10px; background: rgba(0,0,0,.25); backdrop-filter: blur(8px); }

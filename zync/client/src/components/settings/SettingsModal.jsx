@@ -71,6 +71,32 @@ function AccountSettings() {
   );
 }
 
+const POPULAR_GAMES = ['Minecraft', 'Fortnite', 'Valorant', 'League of Legends', 'Roblox', 'Counter-Strike 2', 'GTA V', 'Rocket League', 'Apex Legends', 'Genshin Impact', 'EA SPORTS FC', 'Call of Duty', 'Overwatch 2', 'Brawl Stars', 'Clash Royale', 'Among Us', 'Terraria', 'Stardew Valley', 'Elden Ring', 'Rainbow Six Siege'];
+
+function ActivitySection() {
+  const activity = useStore((s) => s.users[s.me.id]?.activity);
+  const s = useSettings();
+  const [name, setName] = useState('');
+  const setActivity = (n) => api('/me/activity', { method: 'PATCH', body: { name: n, source: 'manual' } }).then(() => toast(n ? `🎮 Aktivität: ${n}` : 'Aktivität entfernt', 'success')).catch((e) => toast(e.message, 'error'));
+  return (
+    <Section title="Aktivität" desc="Zeig deinen Freunden, was du gerade spielst. Die Spielzeit zählt für Badges wie „100h gezockt“ und „Spiele entdeckt“.">
+      {activity?.name ? (
+        <div className="activity-now">
+          <span>🎮 Du spielst gerade <b>{activity.name}</b>{activity.source === 'desktop' ? ' (automatisch erkannt)' : ''}</span>
+          <button type="button" className="btn ghost sm" onClick={() => setActivity('')}>Beenden</button>
+        </div>
+      ) : (
+        <form className="copy-field" onSubmit={(e) => { e.preventDefault(); if (name.trim()) { setActivity(name.trim()); setName(''); } }}>
+          <input className="input" list="zync-games" value={name} onChange={(e) => setName(e.target.value)} placeholder="Was spielst du gerade?" maxLength={64} />
+          <datalist id="zync-games">{POPULAR_GAMES.map((g) => <option key={g} value={g} />)}</datalist>
+          <button type="submit" className="btn primary" disabled={!name.trim()}>Setzen</button>
+        </form>
+      )}
+      <Switch checked={s.detectGames} onChange={(v) => setSetting({ detectGames: v })} label="Spiele automatisch erkennen" desc={window.zyncDesktop ? 'Die Desktop-App erkennt bekannte Spiele und setzt deine Aktivität. Es wird nur der Spielname übertragen.' : 'Funktioniert in der Zync-Desktop-App.'} />
+    </Section>
+  );
+}
+
 function PrivacySettings() {
   const me = useStore((s) => s.me);
   const privacy = { friendRequests: 'everyone', serverDms: true, ...(me.privacy || {}) };
@@ -80,6 +106,7 @@ function PrivacySettings() {
       <Section title="Wer darf dir Freundschaftsanfragen senden?">
         <Segmented value={privacy.friendRequests} onChange={(v) => update({ friendRequests: v })} options={[{ value: 'everyone', label: 'Alle' }, { value: 'mutual', label: 'Gemeinsame Kontakte' }, { value: 'none', label: 'Niemand' }]} />
       </Section>
+      <ActivitySection />
       <Section title="Status">
         <Segmented value={me.status} onChange={(v) => api('/me', { method: 'PATCH', body: { status: v } })} options={[{ value: 'online', label: '🟢 Online' }, { value: 'idle', label: '🌙 Abwesend' }, { value: 'dnd', label: '⛔ Nicht stören' }, { value: 'invisible', label: '👻 Unsichtbar' }]} />
         <p className="section-desc">„Nicht stören“ schaltet Benachrichtigungen und Anrufe stumm. „Unsichtbar“ zeigt dich als offline an, du kannst Zync aber normal nutzen.</p>

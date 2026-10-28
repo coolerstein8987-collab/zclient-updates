@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from 'react';
-import { useStore } from '../lib/store.js';
+import { useStore, roleColor } from '../lib/store.js';
 import { useSettings } from '../lib/settings.js';
 import { cx, hashColor, initials } from '../lib/format.js';
 
@@ -83,8 +83,10 @@ export function ServerIcon({ server, size = 48, className }) {
 export function NameTag({ userId, user: userProp, serverId, className, onClick }) {
   const user = useStore((s) => userProp || s.users[userId]);
   const nick = useStore((s) => (serverId ? s.servers[serverId]?.members[userId || user?.id]?.nickname : null));
+  const rColor = useStore((s) => (serverId ? roleColor(s, serverId, userId || user?.id) : null));
   const st = user?.style || {};
   const style = {};
+  if (!st.nameColor && rColor) style.color = rColor;
   if (st.nameColor) {
     if (st.nameColor2 && st.nameEffect !== 'glow') {
       style.backgroundImage = `linear-gradient(90deg, ${st.nameColor}, ${st.nameColor2}, ${st.nameColor})`;

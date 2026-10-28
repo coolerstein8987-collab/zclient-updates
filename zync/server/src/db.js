@@ -126,6 +126,105 @@ CREATE TABLE IF NOT EXISTS stickers (
 );
 `);
 
+// ---------- Migrationen (neue Spalten für bestehende Datenbanken) ----------
+function addColumn(table, col, def) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+  if (!cols.includes(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
+}
+addColumn('users', 'widgets', "TEXT NOT NULL DEFAULT '[]'");
+addColumn('users', 'points', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('users', 'owned', "TEXT NOT NULL DEFAULT '[]'");
+addColumn('users', 'tag_server', 'TEXT');
+addColumn('users', 'activity', 'TEXT');
+addColumn('users', 'voice_seconds', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('users', 'msg_count', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('users', 'best_streak', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('users', 'quests_done', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('users', 'stories_posted', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('servers', 'tag', 'TEXT');
+addColumn('servers', 'tag_emoji', 'TEXT');
+addColumn('servers', 'tag_color', 'TEXT');
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS roles (
+  id TEXT PRIMARY KEY,
+  server_id TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  color TEXT,
+  icon TEXT,
+  position INTEGER NOT NULL DEFAULT 0,
+  permissions INTEGER NOT NULL DEFAULT 0,
+  hoist INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS member_roles (
+  server_id TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role_id TEXT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+  PRIMARY KEY (server_id, user_id, role_id)
+);
+CREATE TABLE IF NOT EXISTS streaks (
+  channel_id TEXT PRIMARY KEY REFERENCES channels(id) ON DELETE CASCADE,
+  count INTEGER NOT NULL DEFAULT 0,
+  best INTEGER NOT NULL DEFAULT 0,
+  last_day TEXT,
+  days TEXT NOT NULL DEFAULT '{}'
+);
+CREATE TABLE IF NOT EXISTS stories (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL,
+  media TEXT,
+  media_type TEXT,
+  text TEXT NOT NULL DEFAULT '',
+  style TEXT NOT NULL DEFAULT '{}',
+  data TEXT NOT NULL DEFAULT '{}',
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_stories_user ON stories(user_id, expires_at);
+CREATE TABLE IF NOT EXISTS story_views (
+  story_id TEXT NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reaction TEXT,
+  at INTEGER NOT NULL,
+  PRIMARY KEY (story_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS quests (
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day TEXT NOT NULL,
+  quest TEXT NOT NULL,
+  progress INTEGER NOT NULL DEFAULT 0,
+  claimed INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, day, quest)
+);
+CREATE TABLE IF NOT EXISTS claims (
+  id TEXT PRIMARY KEY,
+  from_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  to_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  start_min INTEGER NOT NULL,
+  end_min INTEGER NOT NULL,
+  note TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS playtime (
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  game TEXT NOT NULL,
+  seconds INTEGER NOT NULL DEFAULT 0,
+  last_at INTEGER NOT NULL,
+  PRIMARY KEY (user_id, game)
+);
+CREATE TABLE IF NOT EXISTS sounds (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  emoji TEXT NOT NULL DEFAULT '🔊',
+  url TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+`);
+
 // Sortierbare IDs (Zeit + Sequenz, base36, feste Länge) – lexikographisch == chronologisch.
 const EPOCH = 1735689600000; // 2025-01-01
 let lastMs = 0;
@@ -161,33 +260,10 @@ export function tx(fn) {
   }
 }
 
-const json = (s, fallback) => {
+export const json = (s, fallback) => {
   if (s == null) return fallback;
   try { return JSON.parse(s); } catch { return fallback; }
 };
-
-export function publicUser(u) {
-  if (!u) return null;
-  return {
-    id: u.id,
-    username: u.username,
-    displayName: u.display_name,
-    avatar: u.avatar,
-    avatarCrop: json(u.avatar_crop, null),
-    banner: u.banner,
-    bannerCrop: json(u.banner_crop, null),
-    bio: u.bio,
-    pronouns: u.pronouns,
-    tags: json(u.tags, []),
-    style: json(u.style, {}),
-    customStatus: u.custom_status,
-    createdAt: u.created_at,
-  };
-}
-
-export function selfUser(u) {
-  return { ...publicUser(u), status: u.status, privacy: json(u.privacy, {}) };
-}
 
 export function serializeServer(s) {
   return {
@@ -202,6 +278,7 @@ export function serializeServer(s) {
     ownerId: s.owner_id,
     invite: s.invite,
     isPublic: !!s.is_public,
+    tag: s.tag ? { text: s.tag, emoji: s.tag_emoji || '', color: s.tag_color || '#7c5cff' } : null,
     createdAt: s.created_at,
   };
 }
@@ -219,8 +296,13 @@ export function serializeChannel(c) {
   };
 }
 
-export function serializeMember(m) {
-  return { userId: m.user_id, serverId: m.server_id, nickname: m.nickname, role: m.role, joinedAt: m.joined_at };
+export function serializeMember(m, roles) {
+  const ids = roles ?? q.all('SELECT role_id FROM member_roles WHERE server_id = ? AND user_id = ?', m.server_id, m.user_id).map((r) => r.role_id);
+  return { userId: m.user_id, serverId: m.server_id, nickname: m.nickname, role: m.role, joinedAt: m.joined_at, roles: ids };
+}
+
+export function serializeRole(r) {
+  return { id: r.id, serverId: r.server_id, name: r.name, color: r.color, icon: r.icon, position: r.position, permissions: r.permissions, hoist: !!r.hoist };
 }
 
 export function serializeMessages(rows) {

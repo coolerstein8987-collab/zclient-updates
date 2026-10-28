@@ -11,6 +11,10 @@ import { Modal, Field, Switch, Spinner } from './ui.jsx';
 import { Avatar, ServerIcon, NameTag, CroppedImage } from './Avatar.jsx';
 import { ImageCropper, pickFile } from './ImageCropper.jsx';
 import { memberMenu } from './MembersPanel.jsx';
+import { RolesSettings, TagSettings, MemberRolesModal } from './RolesSettings.jsx';
+import { socialModal } from './Social.jsx';
+import { StoryComposer } from './Stories.jsx';
+import { PERMS, permsOf } from '../lib/perm.js';
 
 const TEMPLATES = [
   { id: 'blank', emoji: '✨', name: 'Eigener Server', desc: 'Starte mit einer leeren Leinwand' },
@@ -372,9 +376,18 @@ function ServerSettingsModal({ serverId }) {
     return !t || u?.username.includes(t) || u?.displayName.toLowerCase().includes(t);
   });
   const link = `${location.origin}/invite/${server.invite}`;
-  const tabs = [['overview', 'Übersicht'], ['channels', 'Kanäle'], ['members', 'Mitglieder'], ['invites', 'Einladungen']];
+  const perms = permsOf(useStore.getState(), serverId, meId);
+  const tabs = [
+    perms & PERMS.MANAGE_SERVER && ['overview', 'Übersicht'],
+    perms & PERMS.MANAGE_ROLES && ['roles', 'Rollen'],
+    perms & PERMS.MANAGE_SERVER && ['tag', 'Server-Tag'],
+    perms & PERMS.MANAGE_CHANNELS && ['channels', 'Kanäle'],
+    ['members', 'Mitglieder'],
+    perms & PERMS.MANAGE_SERVER && ['invites', 'Einladungen'],
+  ].filter(Boolean);
+  if (!tabs.some(([id]) => id === tab)) setTimeout(() => setTab(tabs[0][0]), 0);
   return (
-    <Modal onClose={closeModal} title="Servereinstellungen" subtitle={server.name} width={760} className="server-settings">
+    <Modal onClose={closeModal} title="Servereinstellungen" subtitle={server.name} width={900} className="server-settings">
       <div className="ss-layout">
         <nav className="ss-nav">
           {tabs.map(([id, label]) => <button key={id} type="button" className={cx(tab === id && 'active')} onClick={() => setTab(id)}>{label}</button>)}
@@ -441,11 +454,14 @@ function ServerSettingsModal({ serverId }) {
                   <div className="flex-1"><NameTag userId={m.userId} serverId={serverId} /> <span className="muted">@{users[m.userId]?.username}</span></div>
                   {m.role === 'owner' && <span className="role-pill owner"><Crown size={12} /> Besitzer</span>}
                   {m.role === 'admin' && <span className="role-pill admin"><Shield size={12} /> Admin</span>}
+                  {(m.roles || []).slice(0, 3).map((rid) => server.roles?.[rid] && <span key={rid} className="role-pill" style={{ '--rc': server.roles[rid].color || '#99aab5' }}><i className="rp-dot" />{server.roles[rid].name}</span>)}
                   <button type="button" className="btn ghost sm" onClick={(e) => memberMenu(e, serverId, m.userId)}>Verwalten</button>
                 </div>
               ))}
             </div>
           )}
+          {tab === 'roles' && <RolesSettings serverId={serverId} />}
+          {tab === 'tag' && <TagSettings serverId={serverId} />}
           {tab === 'invites' && (
             <div>
               <Field label="Einladungslink" hint="Jeder mit diesem Link kann dem Server beitreten.">
@@ -478,6 +494,8 @@ export function ModalHost() {
     case 'customStatus': return <CustomStatusModal />;
     case 'newDm': return <NewDmModal />;
     case 'serverSettings': return <ServerSettingsModal {...p} />;
-    default: return null;
+    case 'memberRoles': return <MemberRolesModal {...p} />;
+    case 'storyComposer': return <StoryComposer {...p} />;
+    default: return socialModal(modal);
   }
 }

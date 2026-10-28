@@ -197,6 +197,11 @@ export function VoiceSettings() {
         <Segmented value={s.audioBitrate} onChange={(v) => setSetting({ audioBitrate: v })} options={[{ value: 64, label: '64 kbps' }, { value: 96, label: '96 kbps' }, { value: 128, label: '128 kbps' }, { value: 256, label: '256 kbps ✨' }]} />
       </Section>
 
+      <Section title="Soundboard" desc="Sounds, die andere im Call abspielen (📯 Airhorn, 🥁 Ba-dum-tss …).">
+        <Switch checked={s.soundboardEnabled} onChange={(v) => setSetting({ soundboardEnabled: v })} label="Soundboard-Sounds abspielen" />
+        <Slider label="Soundboard-Lautstärke" value={s.soundboardVolume} onChange={(v) => setSetting({ soundboardVolume: v })} format={(v) => `${v}%`} />
+      </Section>
+
       <Section title="Video">
         <div className="grid-2">
           <div>

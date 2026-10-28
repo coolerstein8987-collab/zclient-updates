@@ -130,3 +130,24 @@ html[data-anim='off'] .spinner { animation: spin .7s linear infinite !important;
 @media (prefers-reduced-motion: reduce) {
   html:not([data-anim='full']) .aurora i, html:not([data-anim='full']) .retro-grid { animation: none; }
 }
+
+/* ---------- Shop-Dekorationen ---------- */
+.deco-crown .deco-layer { inset: calc(var(--av-size) * -0.06); border-radius: 50%; box-shadow: 0 0 0 calc(var(--av-size) * 0.03) #fbbf24, 0 0 14px rgba(251,191,36,.7); }
+.deco-crown .deco-layer::before { content: '👑'; position: absolute; left: 50%; top: calc(var(--av-size) * -0.36); transform: translateX(-50%) rotate(-14deg); font-size: calc(var(--av-size) * 0.42); filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)); animation: crownBob 2.8s ease-in-out infinite; }
+@keyframes crownBob { 50% { transform: translateX(-50%) rotate(-8deg) translateY(-8%); } }
+.deco-lightning .deco-layer { inset: calc(var(--av-size) * -0.1); border: calc(var(--av-size) * 0.04) dashed #facc15; box-shadow: 0 0 12px #22d3ee, inset 0 0 10px #22d3ee; animation: spin 6s linear infinite, zap 1.6s steps(1) infinite; }
+@keyframes zap { 0%, 100% { border-color: #facc15; } 40% { border-color: #67e8f9; } 42% { border-color: #fff; filter: brightness(1.8); } 44% { border-color: #67e8f9; filter: none; } }
+.deco-galaxy .deco-layer { inset: calc(var(--av-size) * -0.12); background: radial-gradient(circle at 20% 30%, #fff 0 1.5px, transparent 2.5px), radial-gradient(circle at 75% 20%, #fff 0 1px, transparent 2px), radial-gradient(circle at 85% 70%, #c4b5fd 0 1.5px, transparent 2.5px), radial-gradient(circle at 30% 85%, #fff 0 1px, transparent 2px), conic-gradient(#1e1b4b, #6d28d9, #db2777, #1e1b4b); -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%, #000 70%, transparent 71%); mask: radial-gradient(circle, transparent 58%, #000 60%, #000 70%, transparent 71%); animation: spin 9s linear infinite; filter: drop-shadow(0 0 8px #7c3aed); }
+.deco-rainbow .deco-layer { inset: calc(var(--av-size) * -0.13); background: conic-gradient(#ef4444, #f59e0b, #facc15, #22c55e, #06b6d4, #6366f1, #d946ef, #ef4444); -webkit-mask: radial-gradient(circle, transparent 57%, #000 59%, #000 71%, transparent 72%); mask: radial-gradient(circle, transparent 57%, #000 59%, #000 71%, transparent 72%); animation: spin 2.5s linear infinite; filter: drop-shadow(0 0 6px rgba(255,255,255,.4)); }
+
+/* ---------- Shop-Profil-Effekte ---------- */
+.fx-confetti i { width: calc(6px * var(--s)); height: calc(10px * var(--s)); border-radius: 2px; background: hsl(var(--h) 90% 62%); animation-name: confettiFall; }
+@keyframes confettiFall { from { transform: translateY(0) rotate(0) rotateY(0); } to { transform: translateY(560px) rotate(540deg) rotateY(720deg); } }
+.fx-aurora i { display: none; }
+.fx-aurora::before { content: ''; position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent, rgba(34,211,238,.45), transparent 30%, rgba(167,139,250,.45), transparent 60%, rgba(74,222,128,.4), transparent); filter: blur(28px); animation: spin 14s linear infinite; mix-blend-mode: screen; }
+
+/* ---------- Shop-Namens-Effekte ---------- */
+.ne-neon { color: #fff !important; text-shadow: 0 0 4px #fff, 0 0 10px var(--name-glow, var(--accent)), 0 0 20px var(--name-glow, var(--accent)), 0 0 34px var(--name-glow, var(--accent)); animation: neonFlicker 4s infinite; }
+@keyframes neonFlicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; } 20%, 24%, 55% { opacity: .55; } }
+.ne-fire { background-image: linear-gradient(0deg, #f97316, #facc15, #fff7ed, #f97316) !important; background-size: 100% 300% !important; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: fireText 1.8s linear infinite; filter: drop-shadow(0 0 6px rgba(249,115,22,.7)); }
+@keyframes fireText { to { background-position: 0 -300%; } }

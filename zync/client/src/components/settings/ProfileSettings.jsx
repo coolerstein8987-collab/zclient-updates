@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react';
-import { Camera, Trash2, Plus, X, Sparkles, ImagePlus } from 'lucide-react';
-import { useStore, toast } from '../../lib/store.js';
+import { useEffect, useMemo, useState } from 'react';
+import { Camera, Trash2, Plus, X, Sparkles, ImagePlus, Lock } from 'lucide-react';
+import { useStore, toast, openRewards, closeSettings } from '../../lib/store.js';
 import { api } from '../../lib/api.js';
 import { Field, Section } from '../ui.jsx';
 import { ImageCropper, pickFile } from '../ImageCropper.jsx';
-import { ProfileCard, DECORATIONS, EFFECTS, NAME_FONTS, NAME_EFFECTS, Tag } from '../ProfileCard.jsx';
+import { ProfileCard, Tag } from '../ProfileCard.jsx';
+import { WidgetEditor } from './WidgetEditor.jsx';
+import { loadShop, ItemPreview } from '../Rewards.jsx';
+import { ServerTagChip } from '../Social.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { cx } from '../../lib/format.js';
 
@@ -15,11 +18,44 @@ const THEME_PRESETS = [
   ['#0f172a', '#334155'], ['#fda4af', '#f0abfc'], ['#14532d', '#84cc16'], ['#1e1b4b', '#be185d'], ['#000000', '#ffffff'],
 ];
 
+/** Auswahl eines Cosmetics – gesperrte Items zeigen ihren Punktepreis und führen in den Shop. */
+function CosmeticPicker({ type, value, onPick, catalog, owned, user, noneLabel = 'Keine' }) {
+  const items = catalog.filter((i) => i.type === type);
+  return (
+    <div className={cx('cos-grid', `cos-${type}`)}>
+      <button type="button" className={cx('cos-opt', !value && 'active')} onClick={() => onPick('')}>
+        <div className="cos-preview none">∅</div>
+        <span>{noneLabel}</span>
+      </button>
+      {items.map((it) => {
+        const has = owned.has(it.id);
+        return (
+          <button
+            key={it.id}
+            type="button"
+            className={cx('cos-opt', value === it.value && 'active', !has && 'locked')}
+            onClick={() => {
+              if (has) return onPick(it.value);
+              toast(`🔒 „${it.name}“ gibt's im Shop für 🪙 ${it.price}`, 'info');
+            }}
+            data-tip={has ? it.name : `Im Shop für 🪙 ${it.price}`}
+          >
+            <div className="cos-preview"><ItemPreview item={it} user={user} /></div>
+            <span>{it.name}</span>
+            {!has && <span className="cos-lock"><Lock size={11} /> {it.price}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function pickStyle(src) {
   const s = src || {};
   return {
     accent1: s.accent1 || '#7c5cff', accent2: s.accent2 || '#00d4ff', nameColor: s.nameColor || '', nameColor2: s.nameColor2 || '',
     decoration: s.decoration || '', effect: s.effect || '', nameFont: s.nameFont || '', nameEffect: s.nameEffect || '',
+    nameplate: s.nameplate || '', frame: s.frame || '',
     vibe: s.vibe || '', vibeEmoji: s.vibeEmoji || '🎧',
   };
 }
@@ -29,7 +65,13 @@ export function ProfileSettings() {
   const initial = useMemo(() => ({
     displayName: me.displayName, pronouns: me.pronouns, bio: me.bio, tags: me.tags || [], style: pickStyle(me.style),
     avatar: me.avatar, avatarCrop: me.avatarCrop, banner: me.banner, bannerCrop: me.bannerCrop, customStatus: me.customStatus,
+    widgets: me.widgets || [], tagServer: me.tagServer || null,
   }), [me]);
+  const servers = useStore((s) => s.servers);
+  const [shop, setShop] = useState(null);
+  useEffect(() => { loadShop(true).then(setShop).catch(() => {}); }, []);
+  const owned = useMemo(() => new Set(me.owned || []), [me.owned]);
+  const tagServers = Object.values(servers).filter((sv) => sv.tag);
   const [form, setForm] = useState(initial);
   const [cropper, setCropper] = useState(null);
   const [tagInput, setTagInput] = useState('');
@@ -66,7 +108,8 @@ export function ProfileSettings() {
     }
   };
 
-  const previewUser = { ...me, ...form, style: Object.fromEntries(Object.entries(form.style).filter(([, v]) => v !== '')) };
+  const previewTag = form.tagServer && servers[form.tagServer]?.tag ? { ...servers[form.tagServer].tag, serverId: form.tagServer, serverName: servers[form.tagServer].name } : null;
+  const previewUser = { ...me, ...form, serverTag: previewTag, style: Object.fromEntries(Object.entries(form.style).filter(([, v]) => v !== '')) };
 
   return (
     <div className="profile-settings">
@@ -138,32 +181,46 @@ export function ProfileSettings() {
           </div>
         </Section>
 
-        <Section title="Avatar-Deko" desc="Animierter Rahmen um dein Profilbild.">
-          <div className="deco-grid">
-            {DECORATIONS.map((d) => (
-              <button key={d.id || 'none'} type="button" className={cx('deco-opt', form.style.decoration === d.id && 'active')} onClick={() => setStyle({ decoration: d.id })}>
-                <Avatar user={{ ...previewUser, style: { ...previewUser.style, decoration: d.id } }} size={54} />
-                <span>{d.name}</span>
-              </button>
-            ))}
-          </div>
+        <Section title="Widgets" desc="Gestalte dein Profil mit Karten, Socials, deinen Leuten, Bildern und Erfolgen – wie Mini-Seiten auf deiner Profilkarte.">
+          <WidgetEditor widgets={form.widgets} onChange={(widgets) => set({ widgets })} />
         </Section>
 
-        <Section title="Profil-Effekt">
-          <div className="chip-row">
-            {EFFECTS.map((e) => <button key={e.id || 'none'} type="button" className={cx('chip', form.style.effect === e.id && 'active')} onClick={() => setStyle({ effect: e.id })}>{e.name}</button>)}
-          </div>
+        <Section title="Server-Tag" desc="Zeig, zu welcher Community du gehörst. Andere können auf den Tag klicken und den Server finden.">
+          {tagServers.length === 0 ? <p className="muted">Keiner deiner Server hat einen Tag. Admins können ihn unter Servereinstellungen → Server-Tag anlegen.</p> : (
+            <div className="chip-row">
+              <button type="button" className={cx('chip', !form.tagServer && 'active')} onClick={() => set({ tagServer: null })}>Kein Tag</button>
+              {tagServers.map((sv) => (
+                <button key={sv.id} type="button" className={cx('chip', form.tagServer === sv.id && 'active')} onClick={() => set({ tagServer: sv.id })}>
+                  <ServerTagChip tag={{ ...sv.tag, serverId: sv.id }} interactive={false} /> {sv.name}
+                </button>
+              ))}
+            </div>
+          )}
         </Section>
 
-        <Section title="Namens-Stil" desc="So sieht dein Name im Chat und auf deinem Profil aus.">
-          <div className="sub-label">Schriftart</div>
-          <div className="chip-row">
-            {NAME_FONTS.map((f) => <button key={f.id || 'none'} type="button" className={cx('chip', `nf-${f.id}`, form.style.nameFont === f.id && 'active')} onClick={() => setStyle({ nameFont: f.id })}>{f.name}</button>)}
-          </div>
-          <div className="sub-label">Effekt</div>
-          <div className="chip-row">
-            {NAME_EFFECTS.map((f) => <button key={f.id || 'none'} type="button" className={cx('chip', form.style.nameEffect === f.id && 'active')} onClick={() => setStyle({ nameEffect: f.id })}>{f.name}</button>)}
-          </div>
+        {!shop ? <div className="msg-loading"><span className="spinner" style={{ width: 22, height: 22 }} /></div> : (
+          <>
+            <div className="cos-shop-hint">
+              <span>🪙 <b>{me.points}</b> Punkte · Gesperrte Cosmetics schaltest du mit Punkten aus täglichen Aufgaben frei – kostenlos.</span>
+              <button type="button" className="btn primary sm" onClick={() => { closeSettings(); openRewards('shop'); }}>Zum Shop</button>
+            </div>
+            <Section title="Avatar-Deko" desc="Animierter Rahmen um dein Profilbild.">
+              <CosmeticPicker type="decoration" value={form.style.decoration} onPick={(v) => setStyle({ decoration: v })} catalog={shop.catalog} owned={owned} user={previewUser} />
+            </Section>
+            <Section title="Profil-Effekt" desc="Animierte Partikel über deiner Profilkarte.">
+              <CosmeticPicker type="effect" value={form.style.effect} onPick={(v) => setStyle({ effect: v })} catalog={shop.catalog} owned={owned} user={previewUser} noneLabel="Kein Effekt" />
+            </Section>
+            <Section title="Profilrahmen" desc="Der Rand deiner Profilkarte.">
+              <CosmeticPicker type="frame" value={form.style.frame} onPick={(v) => setStyle({ frame: v })} catalog={shop.catalog} owned={owned} user={previewUser} noneLabel="Standard" />
+            </Section>
+            <Section title="Namensschild" desc="Hintergrund hinter deinem Namen in Mitglieder- und DM-Listen.">
+              <CosmeticPicker type="nameplate" value={form.style.nameplate} onPick={(v) => setStyle({ nameplate: v })} catalog={shop.catalog} owned={owned} user={previewUser} />
+            </Section>
+            <Section title="Namens-Stil" desc="So sieht dein Name im Chat und auf deinem Profil aus.">
+              <div className="sub-label">Schriftart</div>
+              <CosmeticPicker type="nameFont" value={form.style.nameFont} onPick={(v) => setStyle({ nameFont: v })} catalog={shop.catalog} owned={owned} user={previewUser} noneLabel="Standard" />
+              <div className="sub-label">Effekt</div>
+              <CosmeticPicker type="nameEffect" value={form.style.nameEffect} onPick={(v) => setStyle({ nameEffect: v })} catalog={shop.catalog} owned={owned} user={previewUser} noneLabel="Keiner" />
           <div className="sub-label">Farbe</div>
           <div className="color-row">
             <label className="swatch-custom big"><input type="color" value={form.style.nameColor || '#ffffff'} onChange={(e) => setStyle({ nameColor: e.target.value })} /></label>
@@ -171,6 +228,8 @@ export function ProfileSettings() {
             <button type="button" className="btn ghost sm" onClick={() => setStyle({ nameColor: '', nameColor2: '' })}>Standardfarbe</button>
           </div>
         </Section>
+          </>
+        )}
       </div>
 
       <div className="ps-preview">
