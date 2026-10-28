@@ -563,7 +563,10 @@ const track = (t, keys) => {
   return { ...keys[keys.length - 1][1] };
 };
 const base = { alt: 0, el: 90, az: 0, fov: 50, sx: 0, sy: 0, roll: 0, near: 0.02 };
+// ?rig={...} pins the camera for stills (cover, profile picture)
+const RIG_OVERRIDE = JSON.parse(new URLSearchParams(location.search).get('rig') || 'null');
 function rigAt(t) {
+  if (RIG_OVERRIDE) return { ...base, shot: 1, ...RIG_OVERRIDE };
   if (t < C.l2) {
     const k = E.outExpo(seg(t, 0, 1.7)), k2 = E.out(seg(t, 0, C.l2 + 0.5));
     return { ...base, shot: 1, lat: lerp(28, -30, k2), lon: lerp(25, -112, k2), dist: lerp(12, 4.15, k), sy: -0.03, roll: lerp(-28, -3, k), near: 0.05 };
@@ -826,6 +829,7 @@ function renderAt(t) {
   for (const p of [stars, dust, wrecks, issTrail, debris, ...meteors.map(m => m.trail)]) p.material.uniforms.uTime.value = t;
   const pxScale = H / (2 * Math.tan((camera.fov * D2R) / 2));
   for (const p of [dust, wrecks, issTrail, debris, ...meteors.map(m => m.trail)]) p.material.uniforms.uScale.value = pxScale;
+  dust.visible = !RIG_OVERRIDE;  // a near-camera speck reads as a blemish in stills
   stars.material.uniforms.uOpacity.value = shot === 4 || shot === 5 || shot === 7 ? 0.6 : 1;
 
   // holographic overlay / mood per shot
@@ -845,7 +849,7 @@ function renderAt(t) {
   // marker
   const mVis = t >= C.drop && shot !== 4;
   marker.visible = mVis;
-  nemoGlow.visible = mVis;
+  nemoGlow.visible = mVis && facing(nemo);  // drawn without depth test, so hide it on the far side
   if (mVis) {
     const camD = camera.position.distanceTo(nemo);
     const ms = clamp(camD / 1.5, 0.22, 2.6);
@@ -1018,6 +1022,7 @@ const EVENTS = [
   { t: C.tap + 0.45, type: 'pop' },
 ];
 window.renderAt = renderAt;
+window.projectLL = (lat, lon) => toScreen(ll(lat, lon));
 window.EVENTS = EVENTS;
 window.CUES = C;
 await Promise.all(['138px Anton', '900 82px Inter', '800 30px Inter', '700 26px "DejaVu Sans Mono"'].map(f => document.fonts.load(f)));
