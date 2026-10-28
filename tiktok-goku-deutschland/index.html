@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Goku aus Deutschland</title>
+<style>
+@font-face { font-family: 'Anton'; src: url('node_modules/@fontsource/anton/files/anton-latin-400-normal.woff2') format('woff2'); }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+#gl { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+#ui { position: absolute; inset: 0; overflow: hidden; color: #fff; font-family: 'Inter', sans-serif; }
+#tag { position: absolute; left: 60px; top: 160px; padding: 8px 18px; border-radius: 30px; background: rgba(0,0,0,.45); font: 800 26px Inter; letter-spacing: 1px; }
+#tag b { color: #ffd23f; }
+#cap { position: absolute; left: 40px; right: 40px; top: 1180px; text-align: center; }
+.word { display: inline-block; font: 900 104px Inter; letter-spacing: -1px; color: #fff; transform-origin: 50% 60%;
+  text-shadow: 0 0 4px #000, 0 6px 0 #000, 6px 0 0 #000, -6px 0 0 #000, 0 -6px 0 #000, 5px 5px 0 #000, -5px 5px 0 #000, 5px -5px 0 #000, -5px -5px 0 #000, 0 16px 30px rgba(0,0,0,.45); }
+.word.em { color: #ffd23f; }
+#chips { position: absolute; left: 0; right: 0; top: 330px; text-align: center; }
+.chip { position: relative; display: inline-block; margin: 0 12px 20px; padding: 14px 30px; border-radius: 22px; background: #141414; color: #fff;
+  font: 900 46px Inter; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 10px 30px rgba(0,0,0,.35); border: 4px solid #fff; transform-origin: 50% 100%; }
+.chip.y { background: #ffd23f; color: #141414; border-color: #141414; }
+.chip .badge { position: absolute; right: -26px; top: -26px; width: 64px; height: 64px; border-radius: 50%; font: 900 40px/58px Inter; border: 4px solid #fff; }
+.badge.ok { background: #20c35a; } .badge.no { background: #ff2e45; }
+.chip s { text-decoration-thickness: 7px; text-decoration-color: #ff2e45; opacity: .8; }
+.bubble { position: absolute; transform-origin: 0 50%; padding: 18px 30px; border-radius: 28px; background: #fff; color: #111; font: 900 50px Inter;
+  border: 5px solid #111; white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+.bubble:after { content: ''; position: absolute; left: -34px; top: 30%; border: 16px solid transparent; border-right: 20px solid #111; }
+#board { position: absolute; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="gl" width="1080" height="1920"></canvas>
+<div id="ui">
+  <div id="tag">🌍 GEO<b>FAKTEN</b></div>
+  <div id="labels"></div>
+  <div id="chips"></div>
+  <div id="cap"></div>
+</div>
+<script type="module" src="scene.js"></script>
+</body>
+</html>

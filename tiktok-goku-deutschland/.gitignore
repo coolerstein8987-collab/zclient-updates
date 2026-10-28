@@ -1,0 +1,7 @@
+node_modules
+frames/
+preview/
+check/
+voice/*.wav
+*.wav
+__pycache__/

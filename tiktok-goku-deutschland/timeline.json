@@ -1,0 +1,546 @@
+{
+ "duration": 32.877,
+ "fps": 30,
+ "lines": [
+  {
+   "id": 1,
+   "text": "Was wäre, wenn Son Goku aus Deutschland käme?",
+   "start": 0.2,
+   "end": 2.915,
+   "words": [
+    {
+     "w": "Was",
+     "t0": 0.2,
+     "t1": 0.373,
+     "em": false
+    },
+    {
+     "w": "wäre,",
+     "t0": 0.373,
+     "t1": 0.72,
+     "em": false
+    },
+    {
+     "w": "wenn",
+     "t0": 0.94,
+     "t1": 1.159,
+     "em": false
+    },
+    {
+     "w": "Son",
+     "t0": 1.159,
+     "t1": 1.378,
+     "em": false
+    },
+    {
+     "w": "Goku",
+     "t0": 1.378,
+     "t1": 1.816,
+     "em": true
+    },
+    {
+     "w": "aus",
+     "t0": 1.816,
+     "t1": 2.034,
+     "em": false
+    },
+    {
+     "w": "Deutschland",
+     "t0": 2.034,
+     "t1": 2.472,
+     "em": true
+    },
+    {
+     "w": "käme?",
+     "t0": 2.472,
+     "t1": 2.91,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "text": "Dann hieße er nicht Goku, sondern Jürgen.",
+   "start": 3.095,
+   "end": 5.335,
+   "words": [
+    {
+     "w": "Dann",
+     "t0": 3.095,
+     "t1": 3.284,
+     "em": false
+    },
+    {
+     "w": "hieße",
+     "t0": 3.284,
+     "t1": 3.661,
+     "em": false
+    },
+    {
+     "w": "er",
+     "t0": 3.661,
+     "t1": 3.849,
+     "em": false
+    },
+    {
+     "w": "nicht",
+     "t0": 3.849,
+     "t1": 4.038,
+     "em": false
+    },
+    {
+     "w": "Goku,",
+     "t0": 4.038,
+     "t1": 4.415,
+     "em": false
+    },
+    {
+     "w": "sondern",
+     "t0": 4.645,
+     "t1": 4.99,
+     "em": false
+    },
+    {
+     "w": "Jürgen.",
+     "t0": 4.99,
+     "t1": 5.335,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "text": "Für sein Kamehameha[Kamehameha] bräuchte er erst einen Antrag. In dreifacher Ausfertigung.",
+   "start": 5.515,
+   "end": 9.879,
+   "words": [
+    {
+     "w": "Für",
+     "t0": 5.545,
+     "t1": 5.705,
+     "em": false
+    },
+    {
+     "w": "sein",
+     "t0": 5.705,
+     "t1": 5.865,
+     "em": false
+    },
+    {
+     "w": "Kamehameha",
+     "t0": 5.865,
+     "t1": 6.665,
+     "em": true
+    },
+    {
+     "w": "bräuchte",
+     "t0": 6.665,
+     "t1": 6.985,
+     "em": false
+    },
+    {
+     "w": "er",
+     "t0": 6.985,
+     "t1": 7.145,
+     "em": false
+    },
+    {
+     "w": "erst",
+     "t0": 7.145,
+     "t1": 7.305,
+     "em": false
+    },
+    {
+     "w": "einen",
+     "t0": 7.305,
+     "t1": 7.625,
+     "em": false
+    },
+    {
+     "w": "Antrag.",
+     "t0": 7.625,
+     "t1": 7.945,
+     "em": true
+    },
+    {
+     "w": "In",
+     "t0": 8.545,
+     "t1": 8.712,
+     "em": false
+    },
+    {
+     "w": "dreifacher",
+     "t0": 8.712,
+     "t1": 9.21,
+     "em": true
+    },
+    {
+     "w": "Ausfertigung.",
+     "t0": 9.21,
+     "t1": 9.875,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "text": "Trainieren? Nur außerhalb der Ruhezeiten. Sonntags gar nicht.",
+   "start": 10.059,
+   "end": 13.759,
+   "words": [
+    {
+     "w": "Trainieren?",
+     "t0": 10.119,
+     "t1": 10.629,
+     "em": false
+    },
+    {
+     "w": "Nur",
+     "t0": 11.069,
+     "t1": 11.224,
+     "em": false
+    },
+    {
+     "w": "außerhalb",
+     "t0": 11.224,
+     "t1": 11.691,
+     "em": false
+    },
+    {
+     "w": "der",
+     "t0": 11.691,
+     "t1": 11.847,
+     "em": false
+    },
+    {
+     "w": "Ruhezeiten.",
+     "t0": 11.847,
+     "t1": 12.469,
+     "em": true
+    },
+    {
+     "w": "Sonntags",
+     "t0": 12.909,
+     "t1": 13.329,
+     "em": true
+    },
+    {
+     "w": "gar",
+     "t0": 13.329,
+     "t1": 13.539,
+     "em": false
+    },
+    {
+     "w": "nicht.",
+     "t0": 13.539,
+     "t1": 13.749,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "text": "Statt Wolke nimmt er die Bahn. 20[zwanzig] Minuten Verspätung.",
+   "start": 13.939,
+   "end": 17.042,
+   "words": [
+    {
+     "w": "Statt",
+     "t0": 14.029,
+     "t1": 14.197,
+     "em": false
+    },
+    {
+     "w": "Wolke",
+     "t0": 14.197,
+     "t1": 14.534,
+     "em": false
+    },
+    {
+     "w": "nimmt",
+     "t0": 14.534,
+     "t1": 14.703,
+     "em": false
+    },
+    {
+     "w": "er",
+     "t0": 14.703,
+     "t1": 14.871,
+     "em": false
+    },
+    {
+     "w": "die",
+     "t0": 14.871,
+     "t1": 15.04,
+     "em": false
+    },
+    {
+     "w": "Bahn.",
+     "t0": 15.04,
+     "t1": 15.209,
+     "em": true
+    },
+    {
+     "w": "20",
+     "t0": 15.759,
+     "t1": 16.079,
+     "em": false
+    },
+    {
+     "w": "Minuten",
+     "t0": 16.079,
+     "t1": 16.559,
+     "em": false
+    },
+    {
+     "w": "Verspätung.",
+     "t0": 16.559,
+     "t1": 17.039,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "text": "Die Dragon[Dräggen] Balls? Werden ordentlich getrennt.",
+   "start": 17.222,
+   "end": 19.714,
+   "words": [
+    {
+     "w": "Die",
+     "t0": 17.222,
+     "t1": 17.44,
+     "em": false
+    },
+    {
+     "w": "Dragon",
+     "t0": 17.44,
+     "t1": 17.875,
+     "em": false
+    },
+    {
+     "w": "Balls?",
+     "t0": 17.875,
+     "t1": 18.092,
+     "em": false
+    },
+    {
+     "w": "Werden",
+     "t0": 18.592,
+     "t1": 18.912,
+     "em": false
+    },
+    {
+     "w": "ordentlich",
+     "t0": 18.912,
+     "t1": 19.392,
+     "em": false
+    },
+    {
+     "w": "getrennt.",
+     "t0": 19.392,
+     "t1": 19.712,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "text": "Im Urlaub: Liege um 6[sechs] Uhr reservieren. In Socken und Sandalen.",
+   "start": 19.894,
+   "end": 23.685,
+   "words": [
+    {
+     "w": "Im",
+     "t0": 19.894,
+     "t1": 20.05,
+     "em": false
+    },
+    {
+     "w": "Urlaub:",
+     "t0": 20.05,
+     "t1": 20.364,
+     "em": false
+    },
+    {
+     "w": "Liege",
+     "t0": 20.704,
+     "t1": 21.008,
+     "em": false
+    },
+    {
+     "w": "um",
+     "t0": 21.008,
+     "t1": 21.16,
+     "em": false
+    },
+    {
+     "w": "6",
+     "t0": 21.16,
+     "t1": 21.313,
+     "em": true
+    },
+    {
+     "w": "Uhr",
+     "t0": 21.313,
+     "t1": 21.465,
+     "em": false
+    },
+    {
+     "w": "reservieren.",
+     "t0": 21.465,
+     "t1": 22.074,
+     "em": false
+    },
+    {
+     "w": "In",
+     "t0": 22.544,
+     "t1": 22.707,
+     "em": false
+    },
+    {
+     "w": "Socken",
+     "t0": 22.707,
+     "t1": 23.032,
+     "em": true
+    },
+    {
+     "w": "und",
+     "t0": 23.032,
+     "t1": 23.195,
+     "em": false
+    },
+    {
+     "w": "Sandalen.",
+     "t0": 23.195,
+     "t1": 23.684,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "text": "Sein Kraftlevel: über 9000.[neuntausend] Seine Steuererklärung: auch.",
+   "start": 23.865,
+   "end": 27.785,
+   "words": [
+    {
+     "w": "Sein",
+     "t0": 23.865,
+     "t1": 24.08,
+     "em": false
+    },
+    {
+     "w": "Kraftlevel:",
+     "t0": 24.08,
+     "t1": 24.725,
+     "em": false
+    },
+    {
+     "w": "über",
+     "t0": 24.965,
+     "t1": 25.265,
+     "em": false
+    },
+    {
+     "w": "9000.",
+     "t0": 25.265,
+     "t1": 25.715,
+     "em": true
+    },
+    {
+     "w": "Seine",
+     "t0": 26.285,
+     "t1": 26.662,
+     "em": false
+    },
+    {
+     "w": "Steuererklärung:",
+     "t0": 26.662,
+     "t1": 27.415,
+     "em": true
+    },
+    {
+     "w": "auch.",
+     "t0": 27.665,
+     "t1": 27.775,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "text": "Welches Land soll Goku als Nächstes besuchen? Schreib's in die Kommentare!",
+   "start": 27.965,
+   "end": 31.877,
+   "words": [
+    {
+     "w": "Welches",
+     "t0": 27.965,
+     "t1": 28.344,
+     "em": false
+    },
+    {
+     "w": "Land",
+     "t0": 28.344,
+     "t1": 28.533,
+     "em": true
+    },
+    {
+     "w": "soll",
+     "t0": 28.533,
+     "t1": 28.722,
+     "em": false
+    },
+    {
+     "w": "Goku",
+     "t0": 28.722,
+     "t1": 29.1,
+     "em": true
+    },
+    {
+     "w": "als",
+     "t0": 29.1,
+     "t1": 29.289,
+     "em": false
+    },
+    {
+     "w": "Nächstes",
+     "t0": 29.289,
+     "t1": 29.668,
+     "em": false
+    },
+    {
+     "w": "besuchen?",
+     "t0": 29.668,
+     "t1": 30.235,
+     "em": false
+    },
+    {
+     "w": "Schreib's",
+     "t0": 30.785,
+     "t1": 30.941,
+     "em": false
+    },
+    {
+     "w": "in",
+     "t0": 30.941,
+     "t1": 31.097,
+     "em": false
+    },
+    {
+     "w": "die",
+     "t0": 31.097,
+     "t1": 31.252,
+     "em": false
+    },
+    {
+     "w": "Kommentare!",
+     "t0": 31.252,
+     "t1": 31.875,
+     "em": true
+    }
+   ]
+  }
+ ]
+}
