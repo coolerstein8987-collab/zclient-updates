@@ -1,0 +1,470 @@
+{
+ "duration": 28.475,
+ "fps": 30,
+ "lines": [
+  {
+   "id": 1,
+   "text": "Das ist der einsamste Ort der Welt.",
+   "start": 0.35,
+   "end": 2.171,
+   "words": [
+    {
+     "w": "Das",
+     "t0": 0.35,
+     "t1": 0.552,
+     "em": false
+    },
+    {
+     "w": "ist",
+     "t0": 0.552,
+     "t1": 0.754,
+     "em": false
+    },
+    {
+     "w": "der",
+     "t0": 0.754,
+     "t1": 0.957,
+     "em": false
+    },
+    {
+     "w": "einsamste",
+     "t0": 0.957,
+     "t1": 1.563,
+     "em": true
+    },
+    {
+     "w": "Ort",
+     "t0": 1.563,
+     "t1": 1.766,
+     "em": false
+    },
+    {
+     "w": "der",
+     "t0": 1.766,
+     "t1": 1.968,
+     "em": false
+    },
+    {
+     "w": "Welt.",
+     "t0": 1.968,
+     "t1": 2.17,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "text": "Point[Peunt] Nemo. Mitten im Südpazifik.",
+   "start": 2.391,
+   "end": 4.691,
+   "words": [
+    {
+     "w": "Point",
+     "t0": 2.401,
+     "t1": 2.628,
+     "em": true
+    },
+    {
+     "w": "Nemo.",
+     "t0": 2.628,
+     "t1": 3.081,
+     "em": true
+    },
+    {
+     "w": "Mitten",
+     "t0": 3.571,
+     "t1": 3.888,
+     "em": false
+    },
+    {
+     "w": "im",
+     "t0": 3.888,
+     "t1": 4.047,
+     "em": false
+    },
+    {
+     "w": "Südpazifik.",
+     "t0": 4.047,
+     "t1": 4.681,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "text": "Das nächste Land? Über 2.600[zweitausendsechshundert] Kilometer weg. In jede Richtung.",
+   "start": 4.911,
+   "end": 9.981,
+   "words": [
+    {
+     "w": "Das",
+     "t0": 4.911,
+     "t1": 5.108,
+     "em": false
+    },
+    {
+     "w": "nächste",
+     "t0": 5.108,
+     "t1": 5.503,
+     "em": false
+    },
+    {
+     "w": "Land?",
+     "t0": 5.503,
+     "t1": 5.701,
+     "em": false
+    },
+    {
+     "w": "Über",
+     "t0": 6.351,
+     "t1": 6.682,
+     "em": false
+    },
+    {
+     "w": "2.600",
+     "t0": 6.682,
+     "t1": 7.674,
+     "em": true
+    },
+    {
+     "w": "Kilometer",
+     "t0": 7.674,
+     "t1": 8.335,
+     "em": false
+    },
+    {
+     "w": "weg.",
+     "t0": 8.335,
+     "t1": 8.501,
+     "em": false
+    },
+    {
+     "w": "In",
+     "t0": 9.151,
+     "t1": 9.315,
+     "em": false
+    },
+    {
+     "w": "jede",
+     "t0": 9.315,
+     "t1": 9.643,
+     "em": false
+    },
+    {
+     "w": "Richtung.",
+     "t0": 9.643,
+     "t1": 9.971,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "text": "Die nächsten Menschen? Oft gar nicht auf der Erde, sondern auf der Raumstation. Nur 400[vierhundert] Kilometer über dir.",
+   "start": 10.201,
+   "end": 17.072,
+   "words": [
+    {
+     "w": "Die",
+     "t0": 10.201,
+     "t1": 10.401,
+     "em": false
+    },
+    {
+     "w": "nächsten",
+     "t0": 10.401,
+     "t1": 10.801,
+     "em": false
+    },
+    {
+     "w": "Menschen?",
+     "t0": 10.801,
+     "t1": 11.201,
+     "em": false
+    },
+    {
+     "w": "Oft",
+     "t0": 11.711,
+     "t1": 11.899,
+     "em": false
+    },
+    {
+     "w": "gar",
+     "t0": 11.899,
+     "t1": 12.088,
+     "em": false
+    },
+    {
+     "w": "nicht",
+     "t0": 12.088,
+     "t1": 12.276,
+     "em": false
+    },
+    {
+     "w": "auf",
+     "t0": 12.276,
+     "t1": 12.465,
+     "em": false
+    },
+    {
+     "w": "der",
+     "t0": 12.465,
+     "t1": 12.653,
+     "em": false
+    },
+    {
+     "w": "Erde,",
+     "t0": 12.653,
+     "t1": 13.031,
+     "em": true
+    },
+    {
+     "w": "sondern",
+     "t0": 13.271,
+     "t1": 13.719,
+     "em": false
+    },
+    {
+     "w": "auf",
+     "t0": 13.719,
+     "t1": 13.943,
+     "em": false
+    },
+    {
+     "w": "der",
+     "t0": 13.943,
+     "t1": 14.168,
+     "em": false
+    },
+    {
+     "w": "Raumstation.",
+     "t0": 14.168,
+     "t1": 14.841,
+     "em": true
+    },
+    {
+     "w": "Nur",
+     "t0": 15.331,
+     "t1": 15.489,
+     "em": false
+    },
+    {
+     "w": "400",
+     "t0": 15.489,
+     "t1": 15.963,
+     "em": true
+    },
+    {
+     "w": "Kilometer",
+     "t0": 15.963,
+     "t1": 16.596,
+     "em": false
+    },
+    {
+     "w": "über",
+     "t0": 16.596,
+     "t1": 16.912,
+     "em": false
+    },
+    {
+     "w": "dir.",
+     "t0": 16.912,
+     "t1": 17.071,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "text": "Darum liegt hier ein Friedhof für Raumschiffe. Über 260[zweihundertsechzig] sind hier schon versunken.",
+   "start": 17.292,
+   "end": 22.456,
+   "words": [
+    {
+     "w": "Darum",
+     "t0": 17.292,
+     "t1": 17.704,
+     "em": false
+    },
+    {
+     "w": "liegt",
+     "t0": 17.704,
+     "t1": 17.911,
+     "em": false
+    },
+    {
+     "w": "hier",
+     "t0": 17.911,
+     "t1": 18.117,
+     "em": false
+    },
+    {
+     "w": "ein",
+     "t0": 18.117,
+     "t1": 18.323,
+     "em": false
+    },
+    {
+     "w": "Friedhof",
+     "t0": 18.323,
+     "t1": 18.736,
+     "em": true
+    },
+    {
+     "w": "für",
+     "t0": 18.736,
+     "t1": 18.943,
+     "em": false
+    },
+    {
+     "w": "Raumschiffe.",
+     "t0": 18.943,
+     "t1": 19.562,
+     "em": true
+    },
+    {
+     "w": "Über",
+     "t0": 20.072,
+     "t1": 20.438,
+     "em": false
+    },
+    {
+     "w": "260",
+     "t0": 20.438,
+     "t1": 21.353,
+     "em": true
+    },
+    {
+     "w": "sind",
+     "t0": 21.353,
+     "t1": 21.536,
+     "em": false
+    },
+    {
+     "w": "hier",
+     "t0": 21.536,
+     "t1": 21.719,
+     "em": false
+    },
+    {
+     "w": "schon",
+     "t0": 21.719,
+     "t1": 21.902,
+     "em": false
+    },
+    {
+     "w": "versunken.",
+     "t0": 21.902,
+     "t1": 22.452,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "text": "Und bald stürzt sogar die Raumstation selbst hier ab.",
+   "start": 22.676,
+   "end": 25.51,
+   "words": [
+    {
+     "w": "Und",
+     "t0": 22.676,
+     "t1": 22.912,
+     "em": false
+    },
+    {
+     "w": "bald",
+     "t0": 22.912,
+     "t1": 23.148,
+     "em": false
+    },
+    {
+     "w": "stürzt",
+     "t0": 23.148,
+     "t1": 23.383,
+     "em": false
+    },
+    {
+     "w": "sogar",
+     "t0": 23.383,
+     "t1": 23.855,
+     "em": false
+    },
+    {
+     "w": "die",
+     "t0": 23.855,
+     "t1": 24.091,
+     "em": false
+    },
+    {
+     "w": "Raumstation",
+     "t0": 24.091,
+     "t1": 24.798,
+     "em": true
+    },
+    {
+     "w": "selbst",
+     "t0": 24.798,
+     "t1": 25.034,
+     "em": false
+    },
+    {
+     "w": "hier",
+     "t0": 25.034,
+     "t1": 25.27,
+     "em": false
+    },
+    {
+     "w": "ab.",
+     "t0": 25.27,
+     "t1": 25.506,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "text": "Folg mir für mehr verrückte Orte!",
+   "start": 25.73,
+   "end": 27.325,
+   "words": [
+    {
+     "w": "Folg",
+     "t0": 25.73,
+     "t1": 25.906,
+     "em": false
+    },
+    {
+     "w": "mir",
+     "t0": 25.906,
+     "t1": 26.083,
+     "em": false
+    },
+    {
+     "w": "für",
+     "t0": 26.083,
+     "t1": 26.26,
+     "em": false
+    },
+    {
+     "w": "mehr",
+     "t0": 26.26,
+     "t1": 26.436,
+     "em": false
+    },
+    {
+     "w": "verrückte",
+     "t0": 26.436,
+     "t1": 26.966,
+     "em": true
+    },
+    {
+     "w": "Orte!",
+     "t0": 26.966,
+     "t1": 27.32,
+     "em": false
+    }
+   ]
+  }
+ ]
+}
