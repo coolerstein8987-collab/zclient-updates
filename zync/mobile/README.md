@@ -30,6 +30,8 @@ Was die App zusätzlich zur Website kann:
 - Vollbild mit dunkler Status- und Navigationsleiste, Tastatur schiebt den Chat mit
 - Zurück-Taste schließt Fenster/Profil/Chat statt die App zu beenden
 - Mikrofon und Kamera für Calls, Sprachnachrichten und Fotos
+- Spracherkennung und Vorlesen für Zync KI (Diktieren und KI-Anruf) über die Android-Sprachdienste
+- „Mit Discord anmelden“ direkt in der App
 - Offline-Seite mit „Nochmal versuchen“, wenn der Server schläft (Render-Gratis-Plan)
 
 Selbst bauen (Android Studio oder JDK 21 + Android-SDK):

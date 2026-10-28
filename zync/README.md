@@ -70,6 +70,22 @@ Läuft im **Browser**, als **Handy-App** und als **Desktop-App (Windows/macOS/Li
 - 🎤 **Sprachnachrichten** mit Live-Wellenform beim Aufnehmen, Player mit Spulen und 1×/1,5×/2×.
 - 📯 **Soundboard** im Call: 12 eingebaute Sounds (Airhorn, Ba-dum-tss, Tada, Sad Trombone, Applaus …) + eigene Sounds.
 
+**Zync KI (mit Claude von Anthropic)**
+- ✨ **KI-Chat** mit mehreren Unterhaltungen – der Verlauf bleibt nur auf deinem Gerät (abschaltbar), Vorlesen, Diktieren.
+- 📞 **KI-Anruf**: mit der KI sprechen, sie antwortet mit Stimme (Chrome/Edge bzw. Android-App).
+- 🤫 **KI fragen (privat)** an jeder Nachricht: „Was ist gemeint?“ oder „Antwort schreiben“ – nur du siehst es, die KI bekommt
+  nur die Nachrichten, die du auswählst. Dazu **Übersetzen** und ein **Antwort-Helfer** ✨ im Eingabefeld.
+- 👁️ **@KI im Chat** und **„Was hab ich verpasst?“** nur, wenn alle zustimmen (DM: beide, Server: wer Kanäle verwalten darf).
+- 🎙️ Sprachnachrichten werden am PC automatisch als Text mitgeschickt.
+- Einrichten: als Owner unter *Einstellungen → Zync-Verwaltung* den Anthropic-Schlüssel eintragen, Modell und Tageslimit wählen.
+
+**Discord & eingebaute Bots**
+- 🎮 **Mit Discord anmelden** – Name, Bild und Banner werden einmal übernommen, danach gehört das Profil Zync.
+- 🔗 **Discord-Brücke** (freiwillig, pro Kanal): Nachrichten werden zwischen Zync und einem Discord-Kanal gespiegelt.
+- 🤖 **Zync-Helfer** statt 20 Bots: Willkommensnachricht, Auto-Rolle, Level & XP mit Rangliste, Wortfilter, Link-/Spamschutz,
+  Umfragen, Gewinnspiele, Erinnerungen und geplante Nachrichten – auch per `/umfrage`, `/gewinnspiel`, `/erinnere`, `/planen`.
+- 🎂 **Geburtstage** mit Kalender, Hinweis, Konfetti und „Glückwunsch um 0:00 planen“, 🎵 **Profil-Song** und 📖 **Gästebuch**.
+
 **Einstellungen**
 - **Darstellung**: 11 Themes (Nacht, AMOLED, Graphit, Hell, Aurora, Ozean, Wald, Sakura, Sunset, Cyber, Latte), Akzentfarben mit
   Verlauf, Schriftarten, UI-/Chat-Skalierung, Eckenrundung, Sättigung, Dichte, Sprechblasen-Modus, **PC-/Handy-Ansicht erzwingen**
@@ -114,6 +130,9 @@ zync.deine-domain.de {
 | `ZYNC_TLS_CERT`, `ZYNC_TLS_KEY` | Pfade zu Zertifikat/Schlüssel → Zync spricht direkt HTTPS |
 | `ZYNC_TRUST_PROXY=1` | Hinter einem Reverse-Proxy setzen (korrekte IPs fürs Rate-Limit) |
 | `ZYNC_OWNERS` | Benutzernamen mit „Zync Owner“-Badge, mehrere mit Komma (Standard `coolersteinyt`) |
+| `ANTHROPIC_API_KEY` | Schlüssel für Zync KI (alternativ in der Zync-Verwaltung eintragen); `ZYNC_AI_MODEL`, `ZYNC_AI_DAILY_LIMIT` optional |
+| `ZYNC_DISCORD_CLIENT_ID`, `ZYNC_DISCORD_CLIENT_SECRET`, `ZYNC_DISCORD_BOT_TOKEN` | Discord-Login und -Brücke (alternativ in der Zync-Verwaltung) |
+| `ZYNC_PUBLIC_URL` | Öffentliche Adresse, falls Zync hinter einem Proxy die eigene Adresse nicht erkennt (für Discord-Links) |
 | `ZYNC_BACKUP_URL` | Postgres-Verbindung (z. B. kostenlos bei [Neon](https://neon.tech)) für die automatische Sicherung – siehe unten |
 | `ZYNC_TZ` | Zeitzone für Flammen, Aufgaben-Reset und Claims (Standard `Europe/Berlin`) |
 | `ZYNC_TURN_URL`, `ZYNC_TURN_USER`, `ZYNC_TURN_PASS` | TURN-Server für Anrufe durch strenge Firewalls/Mobilfunk (z. B. [coturn](https://github.com/coturn/coturn)) |

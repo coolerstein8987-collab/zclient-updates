@@ -4,11 +4,17 @@
   "webDir": "www",
   "android": {
     "backgroundColor": "#0b0d12",
-    "adjustMarginsForEdgeToEdge": "auto",
+    "adjustMarginsForEdgeToEdge": "disable",
     "appendUserAgent": "ZyncApp/1.0"
   },
   "ios": {
     "backgroundColor": "#0b0d12",
     "contentInset": "never"
+  },
+  "server": {
+    "allowNavigation": [
+      "discord.com",
+      "*.discord.com"
+    ]
   }
 }
