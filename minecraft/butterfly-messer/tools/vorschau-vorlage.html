@@ -83,6 +83,7 @@ ol.steps li::before { content: counter(s); font: 700 14px/28px var(--font-displa
 .names { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; }
 .names dt { font-family: var(--font-mono); font-size: 14px; color: var(--fg); }
 .names dd { margin: 0; color: var(--muted); }
+@media (max-width: 480px) { .names.keys { grid-template-columns: minmax(0, 1fr); } .names.keys dd { margin-bottom: 6px; } }
 .cmd { position: relative; background: #080b10; border: 1px solid var(--line); border-radius: 6px; }
 .cmd pre { margin: 0; padding: 12px 12px 44px; font: 13px/1.5 var(--font-mono); color: #cfe3ff; white-space: pre-wrap; word-break: break-all; }
 .cmd button { position: absolute; right: 8px; bottom: 8px; font: 600 13px/1 var(--font-display); padding: 8px 12px; border-radius: 5px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); cursor: pointer; }
@@ -136,7 +137,7 @@ kbd { font-family: var(--font-mono); font-size: 13px; background: var(--panel-2)
 
       <section>
         <h2>Steuerung im Spiel</h2>
-        <dl class="names">
+        <dl class="names keys">
           <dt>Rechtsklick halten</dt><dd>Inspect: hochnehmen, zeigen, Dreher, Flip</dd>
           <dt>Schleichen + Rechtsklick</dt><dd>Flips in Dauerschleife</dd>
         </dl>
