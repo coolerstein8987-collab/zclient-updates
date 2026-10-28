@@ -18,6 +18,12 @@ Installieren:
 Die App lädt Zync danach direkt von deinem Server – neue Funktionen sind sofort drin,
 ohne neue APK. Server wechseln: Einstellungen → Zync-Apps → „Server-Adresse ändern“.
 
+Signatur: Der Build nutzt einen festen Schlüssel aus dem GitHub-Actions-Cache, damit sich neue
+APKs über die alte installieren lassen. GitHub löscht Caches, die 7 Tage nicht benutzt wurden –
+meldet Android dann „App nicht installiert“, einmal die alte App deinstallieren. Dauerhaft stabil
+wird es mit einem Repo-Secret `ZYNC_KEYSTORE_BASE64` (base64 eines Keystores mit Passwort
+`android` und Alias `androiddebugkey`).
+
 Was die App zusätzlich zur Website kann:
 
 - eigenes Zync-Icon (inkl. Android-13-Themen-Icon) und Startbildschirm

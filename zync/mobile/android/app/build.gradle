@@ -19,6 +19,18 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // Im CI-Build ein fester Schlüssel (-PzyncKeystore=…), damit App-Updates ohne Neuinstallation klappen
+        debug {
+            def keystore = project.findProperty('zyncKeystore')
+            if (keystore && file(keystore).exists()) {
+                storeFile file(keystore)
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
