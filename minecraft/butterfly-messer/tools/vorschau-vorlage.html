@@ -98,7 +98,7 @@ kbd { font-family: var(--font-mono); font-size: 13px; background: var(--panel-2)
   <header>
     <div class="eyebrow">Ressourcenpaket · Minecraft Java 1.21.11</div>
     <h1>Z Butterfly-<span>Messer</span></h1>
-    <p class="lede">3D-Balisong mit vier Farben, Flip-Animation und Leucht-Einlagen. Gebaut für den Z Client.</p>
+    <p class="lede">3D-Balisong mit Hand in der Ego-Sicht, Inspect, Flips und Leuchtspur. Vier Farben, gebaut für den Z Client.</p>
   </header>
 
   <div class="main">
@@ -106,17 +106,20 @@ kbd { font-family: var(--font-mono); font-size: 13px; background: var(--panel-2)
       <div class="stage" id="stage">
         <canvas id="view" aria-label="3D-Vorschau des Butterfly-Messers"></canvas>
         <div class="cross" id="cross" hidden></div>
-        <div class="tick" id="tick">Tick 0 / 40</div>
-        <div class="hint" id="hint">Ziehen zum Drehen</div>
+        <div class="tick" id="tick" hidden></div>
+        <div class="hint" id="hint">So siehst du es in der Hand</div>
       </div>
       <div class="controls">
         <div class="row">
           <div class="seg" role="group" aria-label="Ansicht">
-            <button type="button" id="m-3d" data-mode="3d" aria-pressed="true">3D</button>
-            <button type="button" id="m-fp" data-mode="fp" aria-pressed="false">In der Hand</button>
+            <button type="button" id="m-fp" data-mode="fp" aria-pressed="true">In der Hand</button>
+            <button type="button" id="m-3d" data-mode="3d" aria-pressed="false">3D</button>
             <button type="button" id="m-gui" data-mode="gui" aria-pressed="false">Inventar</button>
           </div>
-          <button type="button" class="toggle" id="flip" aria-pressed="false">Flip abspielen</button>
+        </div>
+        <div class="row">
+          <button type="button" class="toggle" id="inspect" aria-pressed="false">Inspect</button>
+          <button type="button" class="toggle" id="flip" aria-pressed="false">Flips</button>
           <button type="button" class="toggle" id="night" aria-pressed="false">Nacht</button>
         </div>
         <div class="chips" id="chips" role="group" aria-label="Farbe"></div>
@@ -125,11 +128,19 @@ kbd { font-family: var(--font-mono); font-size: 13px; background: var(--panel-2)
 
     <aside>
       <dl class="facts">
-        <div><dt>Bauteile</dt><dd>81</dd></div>
-        <div><dt>Stellungen</dt><dd>17</dd></div>
-        <div><dt>Flip</dt><dd>40 Ticks</dd></div>
-        <div><dt>Textur</dt><dd>256 px</dd></div>
+        <div><dt>Inspect</dt><dd id="f-inspect">66 Ticks</dd></div>
+        <div><dt>Flips</dt><dd id="f-loop">40 Ticks</dd></div>
+        <div><dt>Stellungen</dt><dd id="f-states">–</dd></div>
+        <div><dt>Textur</dt><dd>512 px</dd></div>
       </dl>
+
+      <section>
+        <h2>Steuerung im Spiel</h2>
+        <dl class="names">
+          <dt>Rechtsklick halten</dt><dd>Inspect: hochnehmen, zeigen, Dreher, Flip</dd>
+          <dt>Schleichen + Rechtsklick</dt><dd>Flips in Dauerschleife</dd>
+        </dl>
+      </section>
 
       <section>
         <h2>Installieren</h2>
@@ -144,8 +155,18 @@ kbd { font-family: var(--font-mono); font-size: 13px; background: var(--panel-2)
       <section>
         <h2>Messer bekommen</h2>
         <div class="way">
+          <h3>Befehl (Cheats an), mit Inspect und Flips</h3>
+          <div class="cmd"><pre id="cmd"></pre><button type="button" id="copy">Kopieren</button></div>
+        </div>
+        <div class="way">
+          <h3>Datenpaket: Herstellen, mit Inspect und Flips</h3>
+          <div class="recipe"><span>Eisenschwert</span><b>+</b><span id="dye">Hellgrüner Farbstoff</span><b>+</b><span>Glowstone-Staub</span></div>
+          <p>Oder <kbd id="fn">/function zknife:neon</kbd>. Datenpaket in den Ordner <kbd>datapacks</kbd> der Welt legen.</p>
+          <a class="dl ghost" href="https://github.com/coolerstein8987-collab/zclient-updates/raw/claude/discord-clone-app-72l6j2/minecraft/butterfly-messer/Z-Butterfly-Messer-Datenpaket.zip" target="_blank" rel="noopener">Datenpaket (ZIP)</a>
+        </div>
+        <div class="way">
           <h3>Im Amboss umbenennen</h3>
-          <p>Geht im Überleben und auf Servern, mit jedem Schwert. Ohne Flip.</p>
+          <p>Geht im Überleben und auf Servern, mit jedem Schwert. Mit Hand, aber ohne Inspect und Flips.</p>
           <dl class="names">
             <dt>Butterfly</dt><dd>Neon</dd>
             <dt>Butterfly Rot</dt><dd>Rot</dd>
@@ -153,19 +174,9 @@ kbd { font-family: var(--font-mono); font-size: 13px; background: var(--panel-2)
             <dt>Butterfly Blau</dt><dd>Blau</dd>
           </dl>
         </div>
-        <div class="way">
-          <h3>Befehl (Cheats an), mit Flip</h3>
-          <div class="cmd"><pre id="cmd"></pre><button type="button" id="copy">Kopieren</button></div>
-        </div>
-        <div class="way">
-          <h3>Datenpaket: Herstellen, mit Flip</h3>
-          <div class="recipe"><span>Eisenschwert</span><b>+</b><span id="dye">Hellgrüner Farbstoff</span><b>+</b><span>Glowstone-Staub</span></div>
-          <p>Oder <kbd id="fn">/function zknife:neon</kbd>. Datenpaket in den Ordner <kbd>datapacks</kbd> der Welt legen.</p>
-          <a class="dl ghost" href="https://github.com/coolerstein8987-collab/zclient-updates/raw/claude/discord-clone-app-72l6j2/minecraft/butterfly-messer/Z-Butterfly-Messer-Datenpaket.zip" target="_blank" rel="noopener">Datenpaket (ZIP)</a>
-        </div>
       </section>
 
-      <p class="note">Flip: rechte Maustaste gedrückt halten. Andere Spieler sehen das Modell nur, wenn sie das Paket auch aktiviert haben. Eigenes Design nach dem Vorbild des Valorant-Messers, ohne Logos von Riot.</p>
+      <p class="note">Andere Spieler sehen das Modell nur, wenn sie das Paket auch aktiviert haben. Eigenes Design nach dem Vorbild des Valorant-Messers, ohne Logos von Riot.</p>
     </aside>
   </div>
 </div>
@@ -227,27 +238,33 @@ window.KNIFE = __KNIFE_DATA__;
   const stage = document.getElementById('stage');
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
   } catch (e) {
     document.getElementById('hint').textContent = 'Dein Browser kann hier kein 3D anzeigen.';
     return;
   }
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
 
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      map: { value: null }, sky: { value: 1 }, flatGui: { value: 0 },
-      L0: { value: new THREE.Vector3(0.2, 1, -0.7).normalize() }, L1: { value: new THREE.Vector3(-0.2, 1, 0.7).normalize() },
-    },
-    vertexShader: 'attribute float emission; varying vec2 vUv; varying vec3 vN; varying float vE;' +
-      'void main(){ vUv = uv; vE = emission; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: 'uniform sampler2D map; uniform float sky; uniform float flatGui; uniform vec3 L0; uniform vec3 L1;' +
-      'varying vec2 vUv; varying vec3 vN; varying float vE;' +
-      'void main(){ vec4 t = texture2D(map, vUv); if (t.a < 0.1) discard; vec3 n = normalize(vN);' +
-      'float d = min(1.0, (max(0.0, dot(L0, n)) + max(0.0, dot(L1, n))) * 0.6 + 0.4);' +
-      'float df = min(1.0, 0.55 + 0.45 * abs(n.z) + 0.15 * max(0.0, n.y)); d = mix(d, df, flatGui);' +
-      'gl_FragColor = vec4(t.rgb * d * max(sky, vE), 1.0); }',
-  });
+  // Minecraft-Licht: zwei feste Lichtrichtungen, 40 % Grundlicht; Leucht-Elemente bleiben nachts hell
+  function makeMaterial(translucent) {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        map: { value: null }, sky: { value: 1 }, flatGui: { value: 0 },
+        L0: { value: new THREE.Vector3(0.2, 1, -0.7).normalize() }, L1: { value: new THREE.Vector3(-0.2, 1, 0.7).normalize() },
+      },
+      vertexShader: 'attribute float emission; varying vec2 vUv; varying vec3 vN; varying float vE;' +
+        'void main(){ vUv = uv; vE = emission; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'uniform sampler2D map; uniform float sky; uniform float flatGui; uniform vec3 L0; uniform vec3 L1;' +
+        'varying vec2 vUv; varying vec3 vN; varying float vE;' +
+        'void main(){ vec4 t = texture2D(map, vUv); if (t.a < 0.1) discard; vec3 n = normalize(vN);' +
+        'float d = min(1.0, (max(0.0, dot(L0, n)) + max(0.0, dot(L1, n))) * 0.6 + 0.4);' +
+        'float df = min(1.0, 0.55 + 0.45 * abs(n.z) + 0.15 * max(0.0, n.y)); d = mix(d, df, flatGui);' +
+        'gl_FragColor = vec4(t.rgb * d * max(sky, vE), ' + (translucent ? 't.a' : '1.0') + '); }',
+      transparent: translucent, depthWrite: !translucent, side: translucent ? THREE.DoubleSide : THREE.FrontSide,
+    });
+  }
+  const solid = makeMaterial(false), glow = makeMaterial(true);
+  const materials = [solid, glow];
 
   const textures = {};
   function texture(v) {
@@ -259,7 +276,14 @@ window.KNIFE = __KNIFE_DATA__;
     return textures[v];
   }
   const geos = {};
-  function geo(frame) { return geos[frame] || (geos[frame] = buildGeometry(K.frames[frame])); }
+  function geo(name) {
+    if (!geos[name]) {
+      const g = K.geo[name];
+      geos[name] = { solid: buildGeometry(g[0].slice(0, g[1])), trail: buildGeometry(g[0].slice(g[1])) };
+    }
+    return geos[name];
+  }
+  const handGeo = buildGeometry(K.hand);
 
   function displayMatrix(tr) {
     const m = new THREE.Matrix4();
@@ -273,16 +297,18 @@ window.KNIFE = __KNIFE_DATA__;
 
   // Szene
   const scene = new THREE.Scene();
-  const knife = new THREE.Mesh(geo('s0'), material);
-  knife.matrixAutoUpdate = false;
-  scene.add(knife);
+  const knife = new THREE.Mesh(geo(K.idle).solid, solid);
+  const trail = new THREE.Mesh(geo(K.idle).trail, glow);
+  const hand = new THREE.Mesh(handGeo, solid);
+  [knife, hand, trail].forEach(function (m) { m.matrixAutoUpdate = false; scene.add(m); });
+  trail.renderOrder = 2;
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshBasicMaterial({ color: 0x5b9b3a }));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -1.62; scene.add(ground);
   const slots = new THREE.Group(); scene.add(slots);
   const persp = new THREE.PerspectiveCamera(35, 1, 0.02, 100);
   const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
 
-  const state = { variant: 'neon', mode: '3d', flip: false, night: false, yaw: 0.35, pitch: 0.22, t0: performance.now(), tick: 0 };
+  const state = { variant: 'neon', mode: 'fp', anim: null, night: false, yaw: 0.35, pitch: 0.22, t0: 0, tick: 0 };
   let dirty = true, dragging = false, lastX = 0, lastY = 0, idleSince = performance.now();
 
   function buildSlots(w, h) {
@@ -311,58 +337,75 @@ window.KNIFE = __KNIFE_DATA__;
   }
   if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
 
-  function frameName() { return state.flip ? K.timeline[state.tick % K.timeline.length] : 's0'; }
-
-  function render(now) {
-    if (state.flip) {
-      const tick = Math.floor((now - state.t0) / 50);
-      if (tick !== state.tick) { state.tick = tick; dirty = true; document.getElementById('tick').textContent = 'Tick ' + (tick % 40) + ' / 40'; }
+  // Was gerade gezeigt wird: Ruhe, Inspect (einmal) oder Flip-Schleife
+  function current() {
+    if (state.anim === 'inspect') {
+      const t = Math.min(state.tick, K.inspect.length - 1);
+      return { name: K.inspect[t], fp: K.inspectDisplay[t] };
     }
-    if (state.mode === '3d' && !dragging && !reduced && now - idleSince > 1500) { state.yaw += 0.004; dirty = true; }
-    if (!dirty) return requestAnimationFrame(render);
-    dirty = false;
+    if (state.anim === 'loop') return { name: K.loop[state.tick % K.loop.length], fp: K.display.firstperson_righthand };
+    return { name: K.idle, fp: K.display.firstperson_righthand };
+  }
+
+  function setMeshes(name, matrix, withHand) {
+    const g = geo(name);
+    knife.geometry = g.solid; trail.geometry = g.trail;
+    [knife, trail, hand].forEach(function (m) { m.matrix.copy(matrix); m.updateMatrixWorld(true); });
+    hand.visible = withHand;
+  }
+
+  function draw(now) {
     const night = state.night;
-    material.uniforms.map.value = texture(state.variant);
-    material.uniforms.sky.value = night ? 0.12 : 1;
-    knife.geometry = geo(frameName());
+    materials.forEach(function (m) {
+      m.uniforms.map.value = texture(state.variant);
+      m.uniforms.sky.value = night ? 0.12 : 1;
+      m.uniforms.flatGui.value = state.mode === 'gui' ? 1 : 0;
+    });
+    const cur = current();
     ground.visible = state.mode === 'fp';
     slots.visible = state.mode === 'gui';
-    material.uniforms.flatGui.value = state.mode === 'gui' ? 1 : 0;
-    let cam = persp;
     if (state.mode === '3d') {
       scene.background = new THREE.Color(night ? 0x05070b : 0x10161f);
       persp.fov = 35; persp.updateProjectionMatrix();
-      const d = 1.55;
+      const d = 1.65;
       persp.position.set(Math.sin(state.yaw) * Math.cos(state.pitch) * d, Math.sin(state.pitch) * d, Math.cos(state.yaw) * Math.cos(state.pitch) * d);
       persp.lookAt(0, 0, 0);
-      knife.matrix.copy(CENTER);
+      setMeshes(cur.name, CENTER, false);
+      renderer.render(scene, persp);
     } else if (state.mode === 'fp') {
       scene.background = new THREE.Color(night ? 0x0a0f1e : 0x8fb8f0);
       ground.material.color.set(night ? 0x0c1a0c : 0x5b9b3a);
       persp.fov = 70; persp.updateProjectionMatrix();
       persp.position.set(0, 0, 0); persp.lookAt(0, 0, -1);
-      knife.matrix.makeTranslation(0.56, -0.52, -0.72).multiply(displayMatrix(K.display.firstperson_righthand)).multiply(CENTER);
+      setMeshes(cur.name, new THREE.Matrix4().makeTranslation(0.56, -0.52, -0.72).multiply(displayMatrix(cur.fp)).multiply(CENTER), true);
+      renderer.render(scene, persp);
     } else {
-      cam = ortho;
       scene.background = new THREE.Color(night ? 0x1e1e1e : 0xc6c6c6);
-      knife.matrix.makeTranslation(0, stage.clientHeight * 0.1, 0).multiply(new THREE.Matrix4().makeScale(layout.big, layout.big, layout.big)).multiply(CENTER);
-      knife.updateMatrixWorld(true);
+      setMeshes(cur.name, new THREE.Matrix4().makeTranslation(0, stage.clientHeight * 0.1, 0).multiply(new THREE.Matrix4().makeScale(layout.big, layout.big, layout.big)).multiply(CENTER), false);
       renderer.autoClear = true;
-      renderer.render(scene, cam);
-      renderer.autoClear = false;
-      // kleines Symbol im ersten Hotbar-Platz
-      const small = knife.matrix.clone();
+      renderer.render(scene, ortho);
       const u = layout.unit;
-      knife.matrix.makeTranslation(-4 * u * 1.125, -stage.clientHeight / 2 + u * 0.85, 0).multiply(new THREE.Matrix4().makeScale(u, u, u)).multiply(CENTER);
-      knife.updateMatrixWorld(true);
+      setMeshes(cur.name, new THREE.Matrix4().makeTranslation(-4 * u * 1.125, -stage.clientHeight / 2 + u * 0.85, 0).multiply(new THREE.Matrix4().makeScale(u, u, u)).multiply(CENTER), false);
       const bg = scene.background; scene.background = null; slots.visible = false;
-      renderer.render(scene, cam);
-      scene.background = bg; knife.matrix.copy(small); renderer.autoClear = true;
-      return requestAnimationFrame(render);
+      renderer.autoClear = false;
+      renderer.render(scene, ortho);
+      renderer.autoClear = true; scene.background = bg;
     }
-    knife.updateMatrixWorld(true);
-    renderer.render(scene, cam);
-    requestAnimationFrame(render);
+  }
+
+  function loop(now) {
+    if (state.anim && !state.frozen) {
+      const tick = Math.floor((now - state.t0) / 50);
+      if (tick !== state.tick) {
+        state.tick = tick; dirty = true;
+        if (state.anim === 'inspect' && tick >= K.inspect.length + 10) stopAnim();
+        document.getElementById('tick').textContent = state.anim === 'inspect'
+          ? 'Tick ' + Math.min(tick, K.inspect.length) + ' / ' + K.inspect.length : 'Tick ' + (tick % K.loop.length) + ' / ' + K.loop.length;
+      }
+    }
+    if (state.mode === '3d' && !dragging && !reduced && now - idleSince > 1500) { state.yaw += 0.004; dirty = true; }
+    if (dirty) { dirty = false; draw(now); }
+    requestAnimationFrame(loop);
   }
 
   // Steuerung
@@ -381,28 +424,38 @@ window.KNIFE = __KNIFE_DATA__;
     document.documentElement.style.setProperty('--accent-ink', INK[v]);
     document.getElementById('cmd').textContent = K.variants[v].give;
     document.getElementById('dye').textContent = DYES[v];
-    document.getElementById("fn").textContent = '/function zknife:' + v;
+    document.getElementById('fn').textContent = '/function zknife:' + v;
     dirty = true;
   }
   chips.addEventListener('click', function (e) { const b = e.target.closest('.chip'); if (b) setVariant(b.dataset.v); });
-  document.querySelectorAll('.seg button').forEach(function (b) {
-    b.addEventListener('click', function () {
-      state.mode = b.dataset.mode;
-      document.querySelectorAll('.seg button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-      document.getElementById('cross').hidden = state.mode !== 'fp';
-      document.getElementById('hint').textContent = state.mode === '3d' ? 'Ziehen zum Drehen' : state.mode === 'fp' ? 'So siehst du es in der Hand' : 'So sieht es im Inventar aus';
-      dirty = true;
-    });
-  });
-  const flipBtn = document.getElementById('flip');
-  flipBtn.addEventListener('click', function () {
-    state.flip = !state.flip; state.t0 = performance.now(); state.tick = 0;
-    flipBtn.setAttribute('aria-pressed', state.flip ? 'true' : 'false');
-    flipBtn.textContent = state.flip ? 'Flip stoppen' : 'Flip abspielen';
-    document.getElementById('tick').hidden = !state.flip;
+
+  function setMode(mode) {
+    state.mode = mode;
+    document.querySelectorAll('.seg button').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.mode === mode ? 'true' : 'false'); });
+    document.getElementById('cross').hidden = mode !== 'fp';
+    document.getElementById('hint').textContent = mode === '3d' ? 'Ziehen zum Drehen' : mode === 'fp' ? 'So siehst du es in der Hand' : 'So sieht es im Inventar aus';
     dirty = true;
-  });
-  document.getElementById('tick').hidden = true;
+  }
+  document.querySelectorAll('.seg button').forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.mode); }); });
+
+  const inspectBtn = document.getElementById('inspect'), flipBtn = document.getElementById('flip');
+  function stopAnim() {
+    state.anim = null; state.tick = 0; state.frozen = false;
+    inspectBtn.setAttribute('aria-pressed', 'false'); flipBtn.setAttribute('aria-pressed', 'false');
+    flipBtn.textContent = 'Flips';
+    document.getElementById('tick').hidden = true;
+    dirty = true;
+  }
+  function startAnim(kind) {
+    state.anim = kind; state.t0 = performance.now(); state.tick = 0; state.frozen = false;
+    inspectBtn.setAttribute('aria-pressed', kind === 'inspect' ? 'true' : 'false');
+    flipBtn.setAttribute('aria-pressed', kind === 'loop' ? 'true' : 'false');
+    flipBtn.textContent = kind === 'loop' ? 'Flips stoppen' : 'Flips';
+    document.getElementById('tick').hidden = false;
+    dirty = true;
+  }
+  inspectBtn.addEventListener('click', function () { startAnim('inspect'); });
+  flipBtn.addEventListener('click', function () { if (state.anim === 'loop') stopAnim(); else startAnim('loop'); });
   const nightBtn = document.getElementById('night');
   nightBtn.addEventListener('click', function () {
     state.night = !state.night; nightBtn.setAttribute('aria-pressed', state.night ? 'true' : 'false'); dirty = true;
@@ -426,8 +479,23 @@ window.KNIFE = __KNIFE_DATA__;
   const end = function () { dragging = false; idleSince = performance.now(); };
   stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
 
+  document.getElementById('f-inspect').textContent = K.inspect.length + ' Ticks';
+  document.getElementById('f-loop').textContent = K.loop.length + ' Ticks';
+  document.getElementById('f-states').textContent = Object.keys(K.geo).length;
+
+  // Für Tests: bestimmten Tick anzeigen
+  window.knifePreview = {
+    show: function (mode, anim, tick, variant, night) {
+      if (variant) setVariant(variant);
+      setMode(mode); state.night = !!night;
+      state.anim = anim; state.tick = tick; state.frozen = true;
+      draw(performance.now());
+    },
+  };
+
   setVariant('neon');
+  setMode('fp');
   resize();
-  requestAnimationFrame(render);
+  requestAnimationFrame(loop);
 })();
 </script>
