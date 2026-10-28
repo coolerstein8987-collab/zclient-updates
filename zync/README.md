@@ -113,9 +113,24 @@ zync.deine-domain.de {
 | `ZYNC_DATA` | Ordner für Datenbank und Uploads (Standard `server/data`) |
 | `ZYNC_TLS_CERT`, `ZYNC_TLS_KEY` | Pfade zu Zertifikat/Schlüssel → Zync spricht direkt HTTPS |
 | `ZYNC_TRUST_PROXY=1` | Hinter einem Reverse-Proxy setzen (korrekte IPs fürs Rate-Limit) |
-| `ZYNC_OWNERS` | Benutzernamen mit „Zync Owner“-Badge, z. B. `coolersteinyt` (mehrere mit Komma) |
+| `ZYNC_OWNERS` | Benutzernamen mit „Zync Owner“-Badge, mehrere mit Komma (Standard `coolersteinyt`) |
+| `ZYNC_BACKUP_URL` | Postgres-Verbindung (z. B. kostenlos bei [Neon](https://neon.tech)) für die automatische Sicherung – siehe unten |
 | `ZYNC_TZ` | Zeitzone für Flammen, Aufgaben-Reset und Claims (Standard `Europe/Berlin`) |
 | `ZYNC_TURN_URL`, `ZYNC_TURN_USER`, `ZYNC_TURN_PASS` | TURN-Server für Anrufe durch strenge Firewalls/Mobilfunk (z. B. [coturn](https://github.com/coturn/coturn)) |
+
+### Daten sichern bei Gratis-Hosting (Render Free)
+
+Render Free löscht bei jedem Neustart, Deploy und nach 15 Minuten Leerlauf alle Dateien – also auch
+Accounts und Nachrichten. Mit `ZYNC_BACKUP_URL` sichert Zync die Datenbank und Uploads automatisch in
+eine Postgres-Datenbank und holt sie beim Start zurück:
+
+1. Bei [neon.tech](https://neon.tech) mit GitHub anmelden → Projekt anlegen (kostenlos, ohne Kreditkarte).
+2. Auf **Connect** tippen und den Connection-String kopieren (`postgresql://…?sslmode=require`).
+3. Bei Render → dein Dienst → **Environment** → `ZYNC_BACKUP_URL` = dieser String → speichern.
+
+Gesichert wird alle 3 Minuten (nur bei Änderungen) und immer beim Herunterfahren. Uploads über 20 MB
+werden nicht gesichert (`ZYNC_BACKUP_MAX_FILE_MB`). Ist die Datenbank beim Start nicht erreichbar,
+läuft Zync ohne Sicherung weiter und überschreibt das alte Backup nicht.
 
 Anrufe und Streams laufen direkt zwischen den Teilnehmern (WebRTC, Peer-to-Peer) – der Server vermittelt nur.
 Ohne TURN-Server klappt das in den meisten Heimnetzen; in Firmen-/Schulnetzen oder im Mobilfunk hilft ein TURN-Server.

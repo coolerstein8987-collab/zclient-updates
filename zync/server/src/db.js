@@ -1,12 +1,11 @@
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
-import path from 'node:path';
+import { DATA_DIR, UPLOAD_DIR, DB_FILE } from './config.js';
 
-export const DATA_DIR = path.resolve(process.env.ZYNC_DATA || path.join(import.meta.dirname, '..', 'data'));
-export const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
+export { DATA_DIR, UPLOAD_DIR };
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-export const db = new DatabaseSync(path.join(DATA_DIR, 'zync.db'));
+export const db = new DatabaseSync(DB_FILE);
 
 db.exec(`
 PRAGMA journal_mode = WAL;

@@ -1,6 +1,6 @@
 # Render-Blueprint für Zync (https://render.com) – Test-Hosting.
-# Achtung: Im Gratis-Tarif ist der Speicher nicht dauerhaft – Accounts und Nachrichten
-# gehen bei jedem Neustart verloren.
+# Achtung: Im Gratis-Tarif ist der Speicher nicht dauerhaft – ohne ZYNC_BACKUP_URL gehen
+# Accounts und Nachrichten bei jedem Neustart verloren (siehe zync/README.md → „Daten sichern“).
 services:
   - type: web
     name: zync
@@ -16,3 +16,5 @@ services:
         value: "1"
       - key: ZYNC_OWNERS
         value: coolersteinyt
+      - key: ZYNC_BACKUP_URL
+        sync: false

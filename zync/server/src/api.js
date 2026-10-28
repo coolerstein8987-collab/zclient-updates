@@ -16,6 +16,7 @@ import {
   emitToUser, emitToServer, emitToChannel, emitToRelated, broadcastPresence, presenceOf, voiceStatesFor,
   joinServerRoom, leaveServerRoom, leaveServerVoice, dropVoiceChannel,
 } from './realtime.js';
+import { forgetUpload } from './backup.js';
 
 export const api = express.Router();
 api.use(express.json({ limit: '1mb' }));
@@ -947,7 +948,10 @@ api.delete('/messages/:id', wrap((req) => {
   emitToChannel(ch, 'message:delete', { id: m.id, channelId: ch.id });
   for (const a of JSON.parse(m.attachments || '[]')) {
     const inUse = q.get('SELECT 1 FROM messages WHERE attachments LIKE ? LIMIT 1', `%${a.url}%`);
-    if (!inUse) fs.promises.unlink(path.join(UPLOAD_DIR, path.basename(a.url))).catch(() => {});
+    if (!inUse) {
+      fs.promises.unlink(path.join(UPLOAD_DIR, path.basename(a.url))).catch(() => {});
+      forgetUpload(path.basename(a.url));
+    }
   }
   return { ok: true };
 }));

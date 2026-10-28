@@ -1,8 +1,15 @@
 // Zentrale Einstellungen (über Umgebungsvariablen anpassbar).
+import path from 'node:path';
+
 export const TZ = process.env.ZYNC_TZ || 'Europe/Berlin';
 
-/** Benutzernamen mit „Zync Owner“-Badge, z. B. ZYNC_OWNERS=coolersteinyt */
-export const OWNERS = (process.env.ZYNC_OWNERS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+/** Datenordner (SQLite-Datenbank + Uploads). */
+export const DATA_DIR = path.resolve(process.env.ZYNC_DATA || path.join(import.meta.dirname, '..', 'data'));
+export const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
+export const DB_FILE = path.join(DATA_DIR, 'zync.db');
+
+/** Benutzernamen mit „Zync Owner“-Badge (kommagetrennt). Standard: der Erfinder von Zync. */
+export const OWNERS = (process.env.ZYNC_OWNERS || 'coolersteinyt').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 
 const dayFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
 const timeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
