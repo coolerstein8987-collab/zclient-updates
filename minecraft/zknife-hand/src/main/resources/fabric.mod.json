@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "zknife_hand",
+	"version": "${version}",
+	"name": "Z Messer-Hand",
+	"description": "Zeigt in der Ego-Sicht deinen echten Minecraft-Arm, der das Z Butterfly-Messer hält – mit Inspect und Flips aus dem Ressourcenpaket.",
+	"authors": ["Coolersteinyt"],
+	"license": "MIT",
+	"icon": "assets/zknife_hand/icon.png",
+	"environment": "client",
+	"mixins": [
+		"zknife_hand.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.0",
+		"minecraft": "~1.21.11",
+		"java": ">=21"
+	}
+}

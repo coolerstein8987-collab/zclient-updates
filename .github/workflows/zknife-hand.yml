@@ -1,0 +1,57 @@
+name: Z Messer-Hand (Fabric-Mod)
+
+on:
+  push:
+    branches: [claude/discord-clone-app-72l6j2]
+    paths:
+      - 'minecraft/zknife-hand/**'
+      - '.github/workflows/zknife-hand.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: minecraft/zknife-hand
+    steps:
+      - uses: actions/checkout@v5
+      - uses: gradle/actions/wrapper-validation@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Bauen
+        run: ./gradlew build --stacktrace --no-daemon
+      - name: Minecraft-Schnittstellen auflisten (nur Signaturen)
+        if: always()
+        run: |
+          find ~/.gradle .gradle -name 'minecraft-*.jar' 2>/dev/null | head -20
+          JAR=$(find ~/.gradle .gradle -path '*minecraftMaven*' -name 'minecraft-*.jar' ! -name '*sources*' 2>/dev/null | grep -iv common | head -1)
+          [ -z "$JAR" ] && JAR=$(find ~/.gradle .gradle -name 'minecraft-*.jar' ! -name '*sources*' 2>/dev/null | head -1)
+          echo "JAR=$JAR"
+          for c in $(cat ../zknife-hand/discover.txt 2>/dev/null); do
+            echo "===== $c"
+            javap -p -cp "$JAR" "$c" 2>&1 | head -150 || true
+          done
+      - name: Mod-Datei sichern
+        if: success()
+        uses: actions/upload-artifact@v5
+        with:
+          name: Z-Messer-Hand
+          path: minecraft/zknife-hand/build/libs/Z-Messer-Hand-*.jar
+      - name: Mod-Datei ins Repo legen
+        if: success() && github.event_name == 'push'
+        run: |
+          JAR=$(ls build/libs/Z-Messer-Hand-*.jar | grep -v sources | head -1)
+          cp "$JAR" ../butterfly-messer/Z-Messer-Hand-Mod.jar
+          cd ../..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add minecraft/butterfly-messer/Z-Messer-Hand-Mod.jar
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Z Messer-Hand: Mod-Datei aktualisiert (Build ${{ github.run_number }})"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done
