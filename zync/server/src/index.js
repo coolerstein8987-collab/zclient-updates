@@ -44,6 +44,7 @@ if (fs.existsSync(CLIENT_DIST)) {
     setHeaders(res, filePath) {
       if (filePath.includes(`${path.sep}assets${path.sep}`)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       else res.setHeader('Cache-Control', 'no-cache');
+      if (filePath.endsWith('.apk')) res.setHeader('Content-Disposition', 'attachment; filename="Zync.apk"');
     },
   }));
   app.get('/{*splat}', (req, res, next) => {

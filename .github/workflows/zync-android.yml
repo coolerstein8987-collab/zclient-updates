@@ -1,0 +1,81 @@
+# Baut die Zync-Android-App (APK) und legt sie unter zync/client/public/downloads/zync.apk ab.
+# Zync bietet sie dann direkt zum Download an: https://<dein-server>/downloads/zync.apk
+name: Zync Android-App
+
+on:
+  push:
+    paths:
+      - 'zync/mobile/**'
+      - '.github/workflows/zync-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zync-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: zync/mobile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: zync/mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      # Gleicher Signatur-Schlüssel über mehrere Builds, damit Updates sich drüberinstallieren lassen
+      - name: Debug-Keystore wiederverwenden
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: zync-debug-keystore
+
+      - name: Web-Teil in das Android-Projekt kopieren
+        run: |
+          npm ci
+          npx cap sync android
+
+      - name: APK bauen
+        working-directory: zync/mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug -PzyncBuild=${{ github.run_number }} --no-daemon --stacktrace
+
+      - name: APK als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: zync-android
+          path: zync/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: APK für den Download in Zync ablegen
+        if: github.ref_type == 'branch'
+        working-directory: .
+        run: |
+          mkdir -p zync/client/public/downloads
+          cp zync/mobile/android/app/build/outputs/apk/debug/app-debug.apk zync/client/public/downloads/zync.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add zync/client/public/downloads/zync.apk
+          git commit -m "Zync Android-App (APK) aktualisiert – Build ${{ github.run_number }}" || exit 0
+          for i in 1 2 3; do
+            git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

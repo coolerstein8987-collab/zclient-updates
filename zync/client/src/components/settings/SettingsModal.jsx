@@ -13,6 +13,8 @@ import { Logo } from '../Logo.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { ProfileSettings } from './ProfileSettings.jsx';
 import { VoiceSettings, KeyCapture } from './VoiceSettings.jsx';
+import { GetAppSettings } from '../GetApp.jsx';
+import { useBackHandler } from '../../lib/back.js';
 
 function AccountSettings() {
   const me = useStore((s) => s.me);
@@ -349,7 +351,7 @@ function AboutSettings() {
           <li>📎 Uploads bis 100 MB, Nachrichten bis 4000 Zeichen</li>
           <li>🎨 11 Designs, eigene Akzentfarben, 3D-Effekte, animierte Hintergründe</li>
           <li>🧩 Eigene Sticker, GIF-Favoriten, Avatar-Dekos und Profil-Effekte</li>
-          <li>📱 Läuft im Browser, als Handy-App (PWA) und als Desktop-App</li>
+          <li>📱 Läuft im Browser, als Android-App, als Web-App am iPhone und als Desktop-App</li>
         </ul>
       </Section>
       <Section title="Daten & Zurücksetzen">
@@ -374,6 +376,7 @@ const SECTIONS = [
   { id: 'notifications', label: 'Benachrichtigungen', icon: <Bell size={18} />, el: NotificationSettings },
   { id: 'keybinds', label: 'Tastenkürzel', icon: <Keyboard size={18} />, el: KeybindSettings },
   { group: 'Sonstiges' },
+  { id: 'apps', label: 'Zync-Apps', icon: <Smartphone size={18} />, el: GetAppSettings },
   { id: 'about', label: 'Über Zync', icon: <Info size={18} />, el: AboutSettings },
 ];
 
@@ -387,6 +390,8 @@ export function SettingsModal() {
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
   }, [section]);
+  const isMobile = useStore((s) => s.isMobile);
+  useBackHandler(!!section && isMobile && !mobileNav, () => setMobileNav(true));
   if (!section) return null;
   const current = SECTIONS.find((s) => s.id === section) || SECTIONS[1];
   const Comp = current.el;

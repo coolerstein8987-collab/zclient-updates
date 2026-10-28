@@ -5,6 +5,7 @@ import { X, Plus, Eye, Trash2, Send, Image as ImageIcon, Type, ChevronLeft, Chev
 import { useStore, storyGroups, toast, sendMessage, openModal, closeModal } from '../lib/store.js';
 import { api, uploadFile } from '../lib/api.js';
 import { cx } from '../lib/format.js';
+import { useBackHandler } from '../lib/back.js';
 import { STICKERS, StickerArt, stickerFromRef } from '../lib/stickers.jsx';
 import { Avatar, NameTag } from './Avatar.jsx';
 import { Spinner } from './ui.jsx';
@@ -173,6 +174,7 @@ export function StoryViewer() {
   const snap = group?.stories[si];
   const story = snap ? stories[snap.id] || snap : null;
   const close = () => { useViewer.setState({ open: false }); setPaused(false); };
+  useBackHandler(open, close);
 
   useEffect(() => {
     if (!open || !story) return;

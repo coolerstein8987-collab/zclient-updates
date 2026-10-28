@@ -4,6 +4,7 @@ import { useStore, loadMessages, ack, displayName, dmPartner, toast, openPopout,
 import { useSettings } from '../lib/settings.js';
 import { api } from '../lib/api.js';
 import { voice } from '../lib/voice.js';
+import { useBackHandler } from '../lib/back.js';
 import { cx, formatDay, formatStamp, STATUS_LABEL } from '../lib/format.js';
 import { renderMarkdown } from '../lib/markdown.jsx';
 import { isAdminRole } from '../lib/perm.js';
@@ -249,6 +250,7 @@ export function ChatView({ channel }) {
   };
 
   const showSide = panel ? 'panel' : sideOpen ? (isDm ? 'profile' : 'members') : null;
+  useBackHandler(isMobile && !!showSide, () => { setMobileSide(false); setPanel(null); });
   const toggleSide = () => {
     setPanel(null);
     if (isMobile) setMobileSide((o) => (panel ? true : !o));

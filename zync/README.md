@@ -122,8 +122,10 @@ Ohne TURN-Server klappt das in den meisten Heimnetzen; in Firmen-/Schulnetzen od
 
 ## Handy-App
 
-- **Sofort (PWA):** Zync-Adresse im Handy-Browser öffnen → „Zum Startbildschirm hinzufügen“. Läuft dann im Vollbild wie eine App.
-- **Native App (Android/iOS):** siehe [`mobile/README.md`](mobile/README.md) (Capacitor).
+- **Android-App (APK):** wird automatisch per GitHub Actions gebaut und liegt auf jedem Zync-Server unter
+  `/downloads/zync.apk` – in Zync unter *Einstellungen → Zync-Apps*. Beim ersten Start die Server-Adresse eingeben.
+- **iPhone (Web-App):** Zync in Safari öffnen → Teilen → „Zum Home-Bildschirm“. Läuft dann im Vollbild wie eine App.
+- Details und selbst bauen: [`mobile/README.md`](mobile/README.md) (Capacitor).
 
 Die Oberfläche erkennt Handys automatisch (eigene Handy-Ansicht mit Tab-Leiste, Wischnavigation, Bottom-Sheets).
 In *Einstellungen → Darstellung → Ansicht* kann man die Handy- oder PC-Ansicht auch erzwingen.

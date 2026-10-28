@@ -2,15 +2,13 @@
   "appId": "app.zync.mobile",
   "appName": "Zync",
   "webDir": "www",
-  "server": {
-    "url": "https://DEIN-ZYNC-SERVER.de",
-    "cleartext": false
-  },
   "android": {
-    "backgroundColor": "#06070b"
+    "backgroundColor": "#0b0d12",
+    "adjustMarginsForEdgeToEdge": "auto",
+    "appendUserAgent": "ZyncApp/1.0"
   },
   "ios": {
-    "backgroundColor": "#06070b",
+    "backgroundColor": "#0b0d12",
     "contentInset": "never"
   }
 }

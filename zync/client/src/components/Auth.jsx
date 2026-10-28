@@ -6,6 +6,7 @@ import { unlockAudio } from '../lib/sounds.js';
 import { Spinner, useTilt } from './ui.jsx';
 import { Wordmark } from './Logo.jsx';
 import { StickerArt } from '../lib/stickers.jsx';
+import { AuthAppLink } from './GetApp.jsx';
 
 export function Auth() {
   const [mode, setMode] = useState('login');
@@ -76,6 +77,7 @@ export function Auth() {
             {register ? 'Schon einen Account?' : 'Neu hier?'}{' '}
             <button type="button" onClick={() => { setMode(register ? 'login' : 'register'); setError(''); }}>{register ? 'Anmelden' : 'Account erstellen'}</button>
           </p>
+          <AuthAppLink />
         </form>
       </div>
     </div>

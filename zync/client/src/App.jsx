@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Home, Users, CircleUser, Settings, LogOut, Pencil, Hash, Gift } from 'lucide-react';
 import {
-  useStore, bootstrap, openModal, showIncomingCall, openSettings, logout, openHome, isUnread, openRewards, SPECIAL_VIEWS,
+  useStore, bootstrap, openModal, closeModal, closeSettings, showIncomingCall, openSettings, logout, openHome, isUnread, openRewards, SPECIAL_VIEWS,
 } from './lib/store.js';
+import { useBackHandler } from './lib/back.js';
+import { MobileAppButton } from './components/GetApp.jsx';
 import { api } from './lib/api.js';
 import { playSoundboard } from './lib/sounds.js';
 import { RewardsView } from './components/Rewards.jsx';
@@ -78,6 +80,7 @@ function MobileMe() {
         <button type="button" className="mm-btn" onClick={() => openSettings('profile')}><CircleUser size={20} /> Profil bearbeiten</button>
         <button type="button" className="mm-btn" onClick={() => openRewards()}><Gift size={20} /> Belohnungen <span className="mm-points">🪙 {me.points}</span></button>
         <button type="button" className="mm-btn" onClick={() => openSettings('appearance')}><Settings size={20} /> Einstellungen</button>
+        <MobileAppButton />
         <button type="button" className="mm-btn danger" onClick={() => openModal('confirm', { title: 'Abmelden?', text: 'Bis bald! 👋', confirm: 'Abmelden', danger: true, onConfirm: logout })}><LogOut size={20} /> Abmelden</button>
       </div>
     </div>
@@ -120,6 +123,23 @@ function MobileLayout() {
       <div className="m-main" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}><MainContent /></div>
     </div>
   );
+}
+
+/** Zurück-Taste am Handy: zuerst Overlays schließen, dann zurück zur Übersicht. */
+function BackHandlers() {
+  const otherTab = useStore((s) => s.mobilePane === 'nav' && s.mobileTab !== 'servers');
+  const inMain = useStore((s) => s.mobilePane !== 'nav');
+  const settings = useStore((s) => !!s.settings);
+  const modal = useStore((s) => !!s.modal);
+  const lightbox = useStore((s) => !!s.lightbox);
+  const overlay = useStore((s) => !!(s.popout || s.menu));
+  useBackHandler(otherTab, () => useStore.setState({ mobileTab: 'servers' }));
+  useBackHandler(inMain, () => useStore.setState({ mobilePane: 'nav' }));
+  useBackHandler(settings, closeSettings);
+  useBackHandler(modal, closeModal);
+  useBackHandler(lightbox, () => useStore.setState({ lightbox: null }));
+  useBackHandler(overlay, () => useStore.setState({ popout: null, menu: null }));
+  return null;
 }
 
 function DesktopLayout() {
@@ -224,6 +244,7 @@ export default function App() {
       ) : (
         <>
           {mobile ? <MobileLayout /> : <DesktopLayout />}
+          <BackHandlers />
           <ModalHost />
           <SettingsModal />
           <ProfilePopout />
