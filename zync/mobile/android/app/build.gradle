@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+// Im CI-Build kommt die Build-Nummer aus GitHub Actions (-PzyncBuild=…)
+def zyncBuild = (project.findProperty('zyncBuild') ?: '1').toString().toInteger()
+
 android {
     namespace "app.zync.mobile"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,9 +10,8 @@ android {
         applicationId "app.zync.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Im CI-Build kommt die Nummer aus GitHub Actions (-PzyncBuild=…)
-        versionCode (project.findProperty('zyncBuild') ?: '1') as Integer
-        versionName "1.0.${project.findProperty('zyncBuild') ?: '0'}"
+        versionCode zyncBuild
+        versionName "1.0.${zyncBuild}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
