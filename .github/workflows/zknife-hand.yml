@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
       - name: Bauen
         run: ./gradlew build --stacktrace --no-daemon
       - name: Minecraft-Schnittstellen auflisten (nur Signaturen)
