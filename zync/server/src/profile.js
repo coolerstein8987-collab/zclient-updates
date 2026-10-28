@@ -59,6 +59,7 @@ export function publicUser(u) {
     id: u.id,
     username: u.username,
     displayName: u.display_name,
+    ...(u.bot ? { bot: true } : {}),
     avatar: u.avatar,
     avatarCrop: json(u.avatar_crop, null),
     banner: u.banner,

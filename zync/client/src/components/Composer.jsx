@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PlusCircle, Smile, Sticker as StickerIcon, X, EyeOff, Eye, FileText, SendHorizontal, Image as ImageIcon, Mic } from 'lucide-react';
-import { useStore, sendMessage, sendTyping, resetTypingThrottle, toast, displayName } from '../lib/store.js';
+import { PlusCircle, Smile, Sticker as StickerIcon, X, EyeOff, Eye, FileText, SendHorizontal, Image as ImageIcon, Mic, Sparkles } from 'lucide-react';
+import { useStore, sendMessage, sendTyping, resetTypingThrottle, toast, displayName, openModal } from '../lib/store.js';
 import { useSettings } from '../lib/settings.js';
 import { uploadFile, imageSize } from '../lib/api.js';
 import { convertEmojis, searchEmojis } from '../lib/emoji.js';
@@ -85,6 +85,17 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
     }
   }, [text, cid]);
   useEffect(() => { if (replyTo) taRef.current?.focus(); }, [replyTo]);
+  // Antwort-Helfer der KI legt Text ins Eingabefeld
+  useEffect(() => {
+    const onDraft = (e) => {
+      if (e.detail.channelId !== cid) return;
+      setText(e.detail.text);
+      requestAnimationFrame(() => taRef.current?.focus());
+    };
+    window.addEventListener('zync:draft', onDraft);
+    return () => window.removeEventListener('zync:draft', onDraft);
+  }, [cid]);
+  const aiOn = useStore((s) => !!s.ai?.enabled);
 
   const mentionables = useMemo(() => {
     if (server) return Object.keys(server.members).map((id) => users[id]).filter(Boolean);
@@ -102,6 +113,7 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
         .slice(0, 8)
         .map((u) => ({ key: u.id, label: displayName(useStore.getState(), u.id, channel.serverId), hint: `@${u.username}`, icon: <Avatar user={u} size={24} decoration={false} />, insert: `@${u.username} ` }));
       if (server && 'everyone'.startsWith(t)) list.push({ key: 'everyone', label: '@everyone', hint: 'Alle benachrichtigen', icon: <span className="ac-emoji">📣</span>, insert: '@everyone ' });
+      if (aiOn && channel.ai?.on && 'ki'.startsWith(t)) list.unshift({ key: 'ki', label: 'Zync KI', hint: '@KI – fragt die KI im Chat', icon: <span className="ac-emoji">✨</span>, insert: '@KI ' });
       setAc({ items: list, index: 0, start: caret - mention[2].length - 1 });
     } else if (emoji) {
       const list = searchEmojis(emoji[2], 8).map((e) => ({ key: e.char + e.name, label: `:${e.name}:`, icon: <span className="ac-emoji">{e.char}</span>, insert: e.char }));
@@ -138,12 +150,12 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
   const uploading = items.some((i) => !i.done && !i.error);
   const [recording, setRecording] = useState(false);
   const [sendingVoice, setSendingVoice] = useState(false);
-  const sendVoice = async (file, duration, waveform) => {
+  const sendVoice = async (file, duration, waveform, transcript) => {
     setRecording(false);
     setSendingVoice(true);
     try {
       const up = await uploadFile(file);
-      await sendMessage(cid, { attachments: [{ ...up, voice: true, duration, waveform }], replyTo });
+      await sendMessage(cid, { attachments: [{ ...up, voice: true, duration, waveform, ...(transcript ? { transcript } : {}) }], replyTo });
       useStore.setState((s) => ({ replyTo: { ...s.replyTo, [cid]: null } }));
     } catch (e) {
       toast(e.message, 'error');
@@ -269,6 +281,7 @@ export function Composer({ channel, placeholder, attachments, disabled }) {
           onBlur={() => setTimeout(() => setAc({ items: [], index: 0, start: 0 }), 150)}
         />
         {text.length > MAX_LEN - 500 && <span className={cx('char-count', text.length > MAX_LEN && 'over')}>{MAX_LEN - text.length}</span>}
+        {aiOn && !disabled && <button type="button" className="composer-btn ai-btn" onClick={() => openModal('aiAssist', { channelId: cid, mode: 'reply' })} data-tip="KI-Antwort-Helfer" aria-label="KI-Antwort-Helfer"><Sparkles size={22} /></button>}
         <button type="button" className={cx('composer-btn gif-btn', picker === 'gif' && 'active')} onClick={() => setPicker(picker === 'gif' ? null : 'gif')} data-tip="GIFs" aria-label="GIFs"><ImageIcon size={22} /></button>
         <button type="button" className={cx('composer-btn', picker === 'sticker' && 'active')} onClick={() => setPicker(picker === 'sticker' ? null : 'sticker')} data-tip="Sticker" aria-label="Sticker"><StickerIcon size={22} /></button>
         <button type="button" className={cx('composer-btn emoji-btn', picker === 'emoji' && 'active')} onClick={() => setPicker(picker === 'emoji' ? null : 'emoji')} data-tip="Emoji" aria-label="Emoji"><Smile size={22} /></button>

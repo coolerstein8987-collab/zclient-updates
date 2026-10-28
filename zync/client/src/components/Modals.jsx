@@ -14,6 +14,7 @@ import { memberMenu } from './MembersPanel.jsx';
 import { RolesSettings, TagSettings, MemberRolesModal } from './RolesSettings.jsx';
 import { socialModal } from './Social.jsx';
 import { StoryComposer } from './Stories.jsx';
+import { AiAssist, AiSummary } from './Ai.jsx';
 import { PERMS, permsOf } from '../lib/perm.js';
 
 const TEMPLATES = [
@@ -496,6 +497,8 @@ export function ModalHost() {
     case 'serverSettings': return <ServerSettingsModal {...p} />;
     case 'memberRoles': return <MemberRolesModal {...p} />;
     case 'storyComposer': return <StoryComposer {...p} />;
+    case 'aiAssist': return <AiAssist key={p.messageId || 'composer'} {...p} />;
+    case 'aiSummary': return <AiSummary {...p} />;
     default: return socialModal(modal);
   }
 }

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Hash, Pin, Search, Users, Phone, Video, ArrowLeft, UserCircle2, X, ChevronDown, Upload } from 'lucide-react';
-import { useStore, loadMessages, ack, displayName, dmPartner, toast, openPopout, openMenu } from '../lib/store.js';
+import { Hash, Pin, Search, Users, Phone, Video, ArrowLeft, UserCircle2, X, ChevronDown, Upload, MoreVertical, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { useStore, loadMessages, ack, displayName, dmPartner, toast, openPopout, openMenu, openModal } from '../lib/store.js';
 import { useSettings } from '../lib/settings.js';
 import { api } from '../lib/api.js';
 import { voice } from '../lib/voice.js';
 import { useBackHandler } from '../lib/back.js';
 import { cx, formatDay, formatStamp, STATUS_LABEL } from '../lib/format.js';
 import { renderMarkdown } from '../lib/markdown.jsx';
-import { isAdminRole } from '../lib/perm.js';
+import { isAdminRole, can, PERMS } from '../lib/perm.js';
 import { Message } from './Message.jsx';
 import { Composer, useAttachments } from './Composer.jsx';
 import { Avatar, NameTag } from './Avatar.jsx';
@@ -16,6 +16,7 @@ import { ProfileCard } from './ProfileCard.jsx';
 import { DmCallStage } from './Call.jsx';
 import { StreakChip, ClaimChip, ActivityLine } from './Social.jsx';
 import { openStoryComposer } from './Stories.jsx';
+import { AiEyeButton, AiSummaryButton, AiConsentBanner } from './Ai.jsx';
 
 function streakMenu(e, channel, partner, meId) {
   const st = channel.streak;
@@ -251,6 +252,22 @@ export function ChatView({ channel }) {
 
   const showSide = panel ? 'panel' : sideOpen ? (isDm ? 'profile' : 'members') : null;
   useBackHandler(isMobile && !!showSide, () => { setMobileSide(false); setPanel(null); });
+  const aiEnabled = useStore((s) => s.ai?.enabled);
+  const canAi = useStore((s) => (channel.serverId ? can(s, channel.serverId, PERMS.MANAGE_CHANNELS) : true));
+  const moreMenu = (e) => {
+    const me = useStore.getState().me;
+    const ai = channel.ai || { on: false, consents: [] };
+    const mineOn = channel.serverId ? ai.on : ai.consents?.includes(me.id);
+    openMenu(e, [
+      { label: 'Angepinnte Nachrichten', icon: <Pin size={16} />, onClick: () => setPanel('pins') },
+      aiEnabled && canAi && {
+        label: mineOn ? 'KI-Mitlesen ausschalten' : channel.serverId ? 'KI im Kanal einschalten' : 'KI im Chat erlauben',
+        icon: mineOn ? <EyeOff size={16} /> : <Eye size={16} />,
+        onClick: () => api(`/channels/${channel.id}/ai`, { method: mineOn ? 'DELETE' : 'PUT' }).catch((err) => toast(err.message, 'error')),
+      },
+      aiEnabled && ai.on && { label: 'Was hab ich verpasst?', icon: <Sparkles size={16} />, onClick: () => openModal('aiSummary', { channelId: channel.id }) },
+    ].filter(Boolean));
+  };
   const toggleSide = () => {
     setPanel(null);
     if (isMobile) setMobileSide((o) => (panel ? true : !o));
@@ -291,7 +308,10 @@ export function ChatView({ channel }) {
               <button type="button" className="icon-btn" data-tip="Videoanruf" onClick={async () => { await voice.join(channel.id); setTimeout(() => voice.toggleVideo(), 600); }}><Video size={20} /></button>
             </>
           )}
-          <button type="button" className={cx('icon-btn', panel === 'pins' && 'active')} data-tip="Angepinnte Nachrichten" onClick={() => setPanel(panel === 'pins' ? null : 'pins')}><Pin size={20} /></button>
+          {!isMobile && <AiSummaryButton channel={channel} />}
+          {!isMobile && <AiEyeButton channel={channel} />}
+          {!isMobile && <button type="button" className={cx('icon-btn', panel === 'pins' && 'active')} data-tip="Angepinnte Nachrichten" onClick={() => setPanel(panel === 'pins' ? null : 'pins')}><Pin size={20} /></button>}
+          {isMobile && <button type="button" className="icon-btn" aria-label="Mehr" onClick={(e) => moreMenu(e)}><MoreVertical size={20} /></button>}
           <button type="button" className={cx('icon-btn', !panel && sideOpen && 'active')} data-tip={isDm ? 'Profil anzeigen' : 'Mitgliederliste'} onClick={toggleSide}>
             {isDm ? <UserCircle2 size={20} /> : <Users size={20} />}
           </button>
@@ -305,6 +325,7 @@ export function ChatView({ channel }) {
       <div className="chat-body">
         <div className="chat-main">
           {isDm && <DmCallStage channel={channel} />}
+          <AiConsentBanner channel={channel} />
           <MessageList channel={channel} jumpRef={jumpRef} />
           <Composer channel={channel} placeholder={placeholder} attachments={attachments} disabled={blocked} />
           <TypingIndicator channel={channel} />

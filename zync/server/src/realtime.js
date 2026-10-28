@@ -219,6 +219,10 @@ export function emitToRelated(userId, event, data) {
   io.to(rooms).emit(event, data);
 }
 
+export function emitToAll(event, data) {
+  io?.emit(event, data);
+}
+
 export function emitToUser(userId, event, data) {
   io?.to(`u:${userId}`).emit(event, data);
 }

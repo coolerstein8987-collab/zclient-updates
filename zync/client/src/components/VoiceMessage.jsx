@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Trash2, SendHorizontal, Play, Pause } from 'lucide-react';
 import { useSettings } from '../lib/settings.js';
 import { toast } from '../lib/store.js';
+import { listen, sttSupported } from '../lib/speech.js';
 import { cx, formatDuration } from '../lib/format.js';
 
 const MAX_SECONDS = 300;
@@ -30,6 +31,26 @@ export function VoiceRecorder({ onSend, onCancel }) {
   const [ready, setReady] = useState(false);
   const r = useRef({});
   const s = useSettings.getState();
+  // Nebenbei mitschreiben, was gesagt wird – so lässt sich die Sprachnachricht auch lesen
+  const said = useRef({ rec: null, text: '' });
+  useEffect(() => {
+    // Am Handy teilen sich Aufnahme und Spracherkennung das Mikrofon nicht zuverlässig → nur am PC
+    if (!useSettings.getState().voiceTranscripts || !sttSupported() || !window.matchMedia('(hover: hover)').matches || window.Capacitor?.Plugins?.SpeechRecognition) return undefined;
+    const st = said.current;
+    const run = () => {
+      st.rec = listen({
+        continuous: true,
+        onText: (f) => { st.final = f; },
+        onEnd: () => {
+          if (st.final) st.text = `${st.text} ${st.final}`.trim();
+          st.final = '';
+          if (!st.stopped) run();
+        },
+      });
+    };
+    run();
+    return () => { st.stopped = true; st.rec?.stop(); };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,7 +119,14 @@ export function VoiceRecorder({ onSend, onCancel }) {
       const type = (c.mimeType || 'audio/webm').split(';')[0];
       const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
       const file = new File(c.chunks, `Sprachnachricht.${ext}`, { type });
-      onSend(file, Math.round(duration * 10) / 10, downsample(c.peaks));
+      const st = said.current;
+      st.stopped = true;
+      st.rec?.stop();
+      // Die Erkennung braucht nach dem Stopp einen Moment für die letzten Worte
+      setTimeout(() => {
+        const transcript = `${st.text} ${st.final || ''}`.trim();
+        onSend(file, Math.round(duration * 10) / 10, downsample(c.peaks), transcript || undefined);
+      }, st.rec ? 400 : 0);
     };
     c.rec.stop();
   }
@@ -126,6 +154,7 @@ export function VoicePlayer({ a }) {
   const ref = useRef(null);
   const [state, setState] = useState({ playing: false, t: 0, d: a.duration || 0 });
   const [rate, setRate] = useState(1);
+  const [showText, setShowText] = useState(false);
   const bars = a.waveform?.length ? a.waveform : Array.from({ length: 48 }, (_, i) => 20 + ((i * 37) % 60));
   const toggle = () => {
     const el = ref.current;
@@ -161,6 +190,8 @@ export function VoicePlayer({ a }) {
       </div>
       <span className="vp-time">{formatDuration((state.playing || state.t ? state.t : state.d) * 1000)}</span>
       <button type="button" className="vp-rate" onClick={() => { const next = rate === 1 ? 1.5 : rate === 1.5 ? 2 : 1; setRate(next); ref.current.playbackRate = next; }}>{rate}×</button>
+      {a.transcript && <button type="button" className={cx('vp-rate vp-text', showText && 'on')} onClick={() => setShowText((v) => !v)} data-tip="Als Text lesen">Aa</button>}
+      {a.transcript && showText && <p className="vp-transcript">„{a.transcript}“</p>}
     </div>
   );
 }

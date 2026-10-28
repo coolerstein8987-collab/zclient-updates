@@ -143,6 +143,15 @@ addColumn('users', 'stories_posted', 'INTEGER NOT NULL DEFAULT 0');
 addColumn('servers', 'tag', 'TEXT');
 addColumn('servers', 'tag_emoji', 'TEXT');
 addColumn('servers', 'tag_color', 'TEXT');
+// KI, Discord, Zync-Helfer, Geburtstage, Profil-Song
+addColumn('users', 'bot', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('users', 'discord_id', 'TEXT');
+addColumn('users', 'birthday', 'TEXT');
+addColumn('users', 'song', 'TEXT');
+addColumn('messages', 'meta', 'TEXT');
+addColumn('channels', 'ai', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('channels', 'bridge', 'TEXT');
+addColumn('servers', 'helpers', "TEXT NOT NULL DEFAULT '{}'");
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS roles (
@@ -214,6 +223,74 @@ CREATE TABLE IF NOT EXISTS playtime (
   last_at INTEGER NOT NULL,
   PRIMARY KEY (user_id, game)
 );
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ai_usage (
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, day)
+);
+CREATE TABLE IF NOT EXISTS ai_consent (
+  channel_id TEXT NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  PRIMARY KEY (channel_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS polls (
+  message_id TEXT PRIMARY KEY REFERENCES messages(id) ON DELETE CASCADE,
+  question TEXT NOT NULL,
+  options TEXT NOT NULL,
+  multi INTEGER NOT NULL DEFAULT 0,
+  ends_at INTEGER
+);
+CREATE TABLE IF NOT EXISTS poll_votes (
+  message_id TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  option INTEGER NOT NULL,
+  PRIMARY KEY (message_id, user_id, option)
+);
+CREATE TABLE IF NOT EXISTS giveaways (
+  message_id TEXT PRIMARY KEY REFERENCES messages(id) ON DELETE CASCADE,
+  prize TEXT NOT NULL,
+  winners INTEGER NOT NULL DEFAULT 1,
+  ends_at INTEGER NOT NULL,
+  ended INTEGER NOT NULL DEFAULT 0,
+  result TEXT
+);
+CREATE TABLE IF NOT EXISTS giveaway_entries (
+  message_id TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  PRIMARY KEY (message_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS member_xp (
+  server_id TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  xp INTEGER NOT NULL DEFAULT 0,
+  level INTEGER NOT NULL DEFAULT 0,
+  last_at INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (server_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS scheduled (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  channel_id TEXT NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  due_at INTEGER NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_scheduled_due ON scheduled(due_at);
+CREATE TABLE IF NOT EXISTS guestbook (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  author_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  text TEXT NOT NULL,
+  sticker TEXT,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_guestbook_owner ON guestbook(owner_id, created_at);
 CREATE TABLE IF NOT EXISTS sounds (
   id TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -223,6 +300,17 @@ CREATE TABLE IF NOT EXISTS sounds (
   created_at INTEGER NOT NULL
 );
 `);
+
+// System-Accounts: schreiben Nachrichten für KI, Zync-Helfer und die Discord-Brücke (kein Login möglich).
+export const BOTS = {
+  ki: { id: 'bot-ki', username: 'zync.ki', name: 'Zync KI', style: { accent1: '#8b5cf6', accent2: '#06b6d4' } },
+  helper: { id: 'bot-helper', username: 'zync.helfer', name: 'Zync Helfer', style: { accent1: '#22c55e', accent2: '#06b6d4' } },
+  discord: { id: 'bot-discord', username: 'zync.discord', name: 'Discord', style: { accent1: '#5865f2', accent2: '#7289da' } },
+};
+for (const b of Object.values(BOTS)) {
+  db.prepare(`INSERT INTO users (id, username, display_name, password, style, bot, created_at) VALUES (?, ?, ?, '!', ?, 1, ?)
+    ON CONFLICT(id) DO UPDATE SET display_name = excluded.display_name, bot = 1`).run(b.id, b.username, b.name, JSON.stringify(b.style), 0);
+}
 
 // Sortierbare IDs (Zeit + Sequenz, base36, feste Länge) – lexikographisch == chronologisch.
 const EPOCH = 1735689600000; // 2025-01-01
@@ -282,7 +370,16 @@ export function serializeServer(s) {
   };
 }
 
+/** KI-Status eines Kanals: Server-Kanal per Admin-Schalter, DM nur wenn alle zugestimmt haben. */
+export function channelAi(c) {
+  if (c.server_id) return { on: !!c.ai, consents: [] };
+  const consents = q.all('SELECT user_id FROM ai_consent WHERE channel_id = ?', c.id).map((r) => r.user_id);
+  const members = q.all('SELECT user_id FROM dm_members WHERE channel_id = ?', c.id).map((r) => r.user_id);
+  return { on: members.length > 0 && members.every((m) => consents.includes(m)), consents };
+}
+
 export function serializeChannel(c) {
+  const bridge = json(c.bridge, null);
   return {
     id: c.id,
     serverId: c.server_id,
@@ -292,6 +389,8 @@ export function serializeChannel(c) {
     category: c.category,
     position: c.position,
     createdAt: c.created_at,
+    ai: channelAi(c),
+    bridge: bridge ? { discordChannelId: bridge.channelId, name: bridge.name || '' } : null,
   };
 }
 
@@ -342,5 +441,6 @@ export function serializeMessages(rows) {
     editedAt: r.edited_at,
     createdAt: r.created_at,
     reactions: [...(byMsg.get(r.id) || new Map())].map(([emoji, users]) => ({ emoji, users })),
+    ...(r.meta ? { meta: json(r.meta, null) } : {}),
   }));
 }

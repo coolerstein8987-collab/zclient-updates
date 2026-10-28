@@ -1,7 +1,7 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  SmilePlus, Reply, Pencil, Trash2, MoreHorizontal, Pin, Copy, Hash, Star, Download, FileText, Crown, Shield, CornerUpLeft, RefreshCw, X,
+  SmilePlus, Reply, Pencil, Trash2, MoreHorizontal, Pin, Copy, Hash, Star, Download, FileText, Crown, Shield, CornerUpLeft, RefreshCw, X, Sparkles, Languages,
 } from 'lucide-react';
 import { useStore, openPopout, openMenu, toast, run, openModal, discardFailed, sendMessage } from '../lib/store.js';
 import { useSettings, setSetting } from '../lib/settings.js';
@@ -15,6 +15,8 @@ import { VoicePlayer } from './VoiceMessage.jsx';
 import { ServerTagChip } from './Social.jsx';
 import { StreakStoryArt, openStoryComposer } from './Stories.jsx';
 import { ExpressionPicker, rememberEmoji } from './ExpressionPicker.jsx';
+import { AiToggleNote, TranslationBlock } from './Ai.jsx';
+import { translateMessage } from '../lib/ai.js';
 
 const JOIN_PHRASES = [
   'ist gerade reingeschneit. ❄️', 'ist da – macht Platz! 🎉', 'ist dem Server beigetreten. Sag hallo! 👋',
@@ -192,6 +194,7 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
   const users = useStore((s) => s.users);
   const settings = useSettings();
   const [picker, setPicker] = useState(null);
+  const aiOn = useStore((s) => !!s.ai?.enabled);
   const mine = msg.authorId === me.id;
 
   const ctx = {
@@ -231,6 +234,13 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
     );
   }
 
+  if (msg.type === 'ai_toggle') return <AiToggleNote msg={msg} serverId={serverId} />;
+
+  const fromDiscord = msg.meta?.via === 'discord';
+  const shown = fromDiscord
+    ? { id: `discord:${msg.meta.name}`, username: msg.meta.name, displayName: msg.meta.name, avatar: msg.meta.avatar || null, style: { accent1: '#5865f2', accent2: '#7289da' } }
+    : author;
+  const askAi = () => openModal('aiAssist', { channelId: msg.channelId, messageId: msg.id, mode: 'explain' });
   const mentioned = !mine && (msg.content.includes(`@${me.username}`) || msg.content.includes('@everyone') || msg.replyTo?.authorId === me.id);
   const jumbo = settings.jumboEmoji && isEmojiOnly(msg.content);
   const react = (emoji) => {
@@ -252,6 +262,8 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
     openMenu(e, [
       { label: 'Reaktion hinzufügen', icon: <SmilePlus size={16} />, onClick: () => setPicker(e.currentTarget?.getBoundingClientRect?.() || { top: e.clientY, bottom: e.clientY, right: e.clientX + 200 }) },
       { label: 'Antworten', icon: <Reply size={16} />, onClick: reply },
+      aiOn && !mine && { label: 'KI fragen (privat)', icon: <Sparkles size={16} />, onClick: askAi },
+      aiOn && msg.content && { label: 'Übersetzen', icon: <Languages size={16} />, onClick: () => translateMessage(msg, settings.aiLanguage || 'Deutsch') },
       mine && msg.content !== undefined && { label: 'Bearbeiten', icon: <Pencil size={16} />, onClick: edit },
       canPin && { label: msg.pinned ? 'Lösen' : 'Anpinnen', icon: <Pin size={16} />, onClick: pin },
       msg.content && { label: 'Text kopieren', icon: <Copy size={16} />, onClick: () => { copyText(msg.content); toast('Kopiert!', 'success'); } },
@@ -285,12 +297,14 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
       <div className="msg-gutter">
         {grouped
           ? <span className="msg-hover-time">{formatTime(msg.createdAt)}</span>
-          : settings.showAvatars && <Avatar user={author} userId={msg.authorId} size={42} onClick={(e) => openPopout(msg.authorId, e, serverId)} className="msg-avatar" />}
+          : settings.showAvatars && <Avatar user={shown} userId={fromDiscord ? undefined : msg.authorId} size={42} onClick={(e) => !fromDiscord && openPopout(msg.authorId, e, serverId)} className="msg-avatar" />}
       </div>
       <div className="msg-main">
         {!grouped && (
           <div className="msg-head">
-            <NameTag user={author} userId={msg.authorId} serverId={serverId} className="msg-author" onClick={(e) => openPopout(msg.authorId, e, serverId)} />
+            <NameTag user={shown} userId={fromDiscord ? undefined : msg.authorId} serverId={fromDiscord ? undefined : serverId} className="msg-author" onClick={(e) => !fromDiscord && openPopout(msg.authorId, e, serverId)} />
+            {fromDiscord && <span className="bot-tag discord">Discord</span>}
+            {!fromDiscord && author?.bot && <span className={cx('bot-tag', msg.authorId === 'bot-ki' && 'ki')}>{msg.authorId === 'bot-ki' ? '✨ KI' : 'BOT'}</span>}
             {author?.serverTag && <ServerTagChip tag={author.serverTag} className="sm" />}
             {roleIcon}
             <time title={new Date(msg.createdAt).toLocaleString('de-DE')}>{formatStamp(msg.createdAt)}</time>
@@ -303,6 +317,7 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
             {msg.editedAt && <span className="edited" title={formatStamp(msg.editedAt)}> (bearbeitet)</span>}
           </div>
         )}
+        <TranslationBlock id={msg.id} />
         {msg.sticker && <Sticker refId={msg.sticker} />}
         {msg.attachments?.length > 0 && (
           <div className={cx('attachments', msg.attachments.length > 1 && 'multi')}>
@@ -325,6 +340,7 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
           <button type="button" data-tip="Antworten" onClick={reply}><Reply size={18} /></button>
           {mine && msg.content !== '' && <button type="button" data-tip="Bearbeiten" onClick={edit}><Pencil size={18} /></button>}
           {(mine || isAdmin) && <button type="button" data-tip="Löschen" className="danger" onClick={del}><Trash2 size={18} /></button>}
+          {aiOn && !mine && <button type="button" data-tip="KI fragen (privat)" className="tb-ai" onClick={askAi}><Sparkles size={18} /></button>}
           <button type="button" data-tip="Mehr" onClick={menu}><MoreHorizontal size={18} /></button>
         </div>
       )}

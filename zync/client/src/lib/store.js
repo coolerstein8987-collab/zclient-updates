@@ -157,7 +157,7 @@ function hardLogout() {
 }
 setUnauthorizedHandler(hardLogout);
 
-export const SPECIAL_VIEWS = ['discover', 'rewards'];
+export const SPECIAL_VIEWS = ['discover', 'rewards', 'ai'];
 
 function normalizeServer(srv) {
   const { members = [], roles = [], ...rest } = srv;
@@ -215,6 +215,9 @@ export async function bootstrap() {
       sounds: d.sounds || [],
       claims: Object.fromEntries((d.claims || []).map((c) => [c.id, c])),
       rtc: d.rtc,
+      ai: d.ai || { enabled: false },
+      isOwner: !!d.isOwner,
+      discordLogin: !!d.discordLogin,
       view,
       messages: {},
       hasMore: {},
@@ -242,6 +245,10 @@ function setView(view) {
 export const openHome = () => setView({ serverId: null, channelId: null });
 export const openRewards = (tab = 'quests') => {
   setView({ serverId: 'rewards', channelId: null, tab });
+  set({ mobilePane: 'chat' });
+};
+export const openAi = () => {
+  setView({ serverId: 'ai', channelId: null });
   set({ mobilePane: 'chat' });
 };
 export const openDiscover = () => {
@@ -332,7 +339,7 @@ function upsertMessage(msg) {
       next = [...list];
       next[idx] = { ...msg, nonce: undefined, pending: false };
     } else {
-      next = [...list, msg].sort((a, b) => (a.pending === b.pending ? a.id.localeCompare(b.id) : a.pending ? 1 : -1));
+      next = [...list, msg].sort((a, b) => (!!a.pending === !!b.pending ? a.id.localeCompare(b.id) : a.pending ? 1 : -1));
     }
     return { messages: { ...s.messages, [msg.channelId]: next } };
   });
@@ -564,6 +571,12 @@ export function connectSocket() {
     if (c && by !== get().me.id) toast(status === 'active' ? '🔓 Der Claim wurde beendet' : '🔓 Claim-Anfrage abgelehnt', 'info');
   });
 
+  socket.on('channel:ai', ({ channelId, ai }) => set((s) => (s.channels[channelId] ? { channels: { ...s.channels, [channelId]: { ...s.channels[channelId], ai } } } : {})));
+  socket.on('ai:notice', ({ text }) => toast(text, 'info', 6000));
+  socket.on('app:config', ({ aiEnabled, aiModel, discordLogin }) => {
+    set((s) => ({ ai: { ...s.ai, enabled: aiEnabled, model: aiModel }, discordLogin }));
+    api('/ai/status').then((ai) => set({ ai })).catch(() => {});
+  });
   socket.on('sound:create', (snd) => set((s) => (s.sounds.some((x) => x.id === snd.id) ? {} : { sounds: [...s.sounds, snd] })));
   socket.on('sound:delete', ({ id }) => set((s) => ({ sounds: s.sounds.filter((x) => x.id !== id) })));
   socket.on('sound:play', (p) => window.dispatchEvent(new CustomEvent('zync:sound', { detail: p })));

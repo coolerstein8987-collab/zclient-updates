@@ -58,6 +58,8 @@ export const DEFAULTS = {
   enterToSend: true,
   markdown: true,
   jumboEmoji: true,
+  voiceTranscripts: true,
+  aiLanguage: 'Deutsch',
   emojiConvert: true,
   showEmbeds: true,
   autoplayGifs: true,

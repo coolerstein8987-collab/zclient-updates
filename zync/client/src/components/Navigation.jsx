@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import {
   Plus, Compass, Users, Hash, Volume2, ChevronDown, ChevronRight, Settings, UserPlus, LogOut, FolderPlus, X, Mic, MicOff,
-  Headphones, HeadphoneOff, PhoneOff, Video, ScreenShare, Search, Bell, Pencil, Copy, Link, Signal, MessageSquarePlus, Trash2, CheckCheck, Gift, Gamepad2,
+  Headphones, HeadphoneOff, PhoneOff, Video, ScreenShare, Search, Bell, Pencil, Copy, Link, Signal, MessageSquarePlus, Trash2, CheckCheck, Gift, Gamepad2, Sparkles,
 } from 'lucide-react';
 import {
-  useStore, openHome, openServer, openChannel, openDm, openDiscover, openRewards, openModal, openSettings, openMenu, openPopout,
+  useStore, openHome, openServer, openChannel, openDm, openDiscover, openRewards, openAi, openModal, openSettings, openMenu, openPopout,
   isUnread, serverChannels, dmList, dmPartner, run, toast, ack,
 } from '../lib/store.js';
 import { useSettings, setSetting } from '../lib/settings.js';
@@ -211,6 +211,10 @@ export function HomeSidebar() {
         </button>
         <button type="button" className={cx('nav-item big', view.serverId === 'discover' && 'active')} onClick={openDiscover}>
           <Compass size={22} /> Entdecken
+        </button>
+        <button type="button" className={cx('nav-item big ai-nav', view.serverId === 'ai' && 'active')} onClick={openAi}>
+          <Sparkles size={22} /> Zync KI
+          <span className="nav-new">NEU</span>
         </button>
         <button type="button" className={cx('nav-item big rewards-nav', view.serverId === 'rewards' && 'active')} onClick={() => openRewards()}>
           <Gift size={22} /> Belohnungen

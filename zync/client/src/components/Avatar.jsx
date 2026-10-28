@@ -40,6 +40,8 @@ export function StillImage({ src, style }) {
 
 const isAnimated = (src) => /\.(gif|webp)$/i.test(src || '');
 
+const BOT_ICON = { 'bot-ki': '✨', 'bot-helper': '🤖', 'bot-discord': '🎮' };
+
 export const Avatar = memo(function Avatar({ userId, user: userProp, size = 40, status, showStatus = false, speaking = false, decoration = true, className, onClick, hoverPlay }) {
   const storeUser = useStore((s) => (userId ? s.users[userId] : null));
   const presence = useStore((s) => (showStatus && userId ? s.presences[userId] : null));
@@ -61,7 +63,8 @@ export const Avatar = memo(function Avatar({ userId, user: userProp, size = 40, 
       <div className="avatar-img" style={!user?.avatar ? { background: accent ? `linear-gradient(135deg, ${accent}, ${user?.style?.accent2 || accent})` : hashColor(user?.id || '?', 55, 45) } : undefined}>
         {user?.avatar
           ? <CroppedImage src={user.avatar} crop={user.avatarCrop} still={still} />
-          : <span className="avatar-initials" style={{ fontSize: size * 0.38 }}>{initials(user?.displayName || user?.username)}</span>}
+          : user?.bot ? <span className={cx('avatar-bot', `ab-${user.id}`)} style={{ fontSize: size * 0.5 }}>{BOT_ICON[user.id] || '🤖'}</span>
+            : <span className="avatar-initials" style={{ fontSize: size * 0.38 }}>{initials(user?.displayName || user?.username)}</span>}
       </div>
       {deco && <span className="deco-layer" />}
       {showStatus && <span className={cx('status-dot', `st-${st}`)} />}

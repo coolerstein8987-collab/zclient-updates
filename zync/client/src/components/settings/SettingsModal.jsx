@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  X, User, Palette, Sparkles, MessageSquare, Mic, Bell, Keyboard, Lock, LogOut, Smartphone, AppWindow, Info, ArrowLeft, CircleUser, Monitor, Box,
+  X, User, Palette, Sparkles, MessageSquare, Mic, Bell, Keyboard, Lock, LogOut, Smartphone, AppWindow, Info, ArrowLeft, CircleUser, Monitor, Box, Crown,
 } from 'lucide-react';
 import { useStore, closeSettings, logout, toast, openModal } from '../../lib/store.js';
 import { useSettings, setSetting, resetSettings, THEMES, ACCENTS, prettyShortcut } from '../../lib/settings.js';
@@ -14,6 +14,7 @@ import { Avatar } from '../Avatar.jsx';
 import { ProfileSettings } from './ProfileSettings.jsx';
 import { VoiceSettings, KeyCapture } from './VoiceSettings.jsx';
 import { GetAppSettings } from '../GetApp.jsx';
+import { AdminSettings } from './AdminSettings.jsx';
 import { useBackHandler } from '../../lib/back.js';
 
 function AccountSettings() {
@@ -251,6 +252,12 @@ function ChatSettings() {
         <Switch checked={s.markdown} onChange={(v) => setSetting({ markdown: v })} label="Markdown darstellen" desc="**fett**, *kursiv*, `Code`, ||Spoiler||, > Zitate, Listen, Überschriften." />
         <Switch checked={s.emojiConvert} onChange={(v) => setSetting({ emojiConvert: v })} label="Emoticons umwandeln" desc=":) wird zu 🙂, <3 zu ❤️ usw." />
         <Switch checked={s.jumboEmoji} onChange={(v) => setSetting({ jumboEmoji: v })} label="Große Emojis" desc="Nachrichten nur aus Emojis werden groß angezeigt." />
+        <Field label="KI übersetzt Nachrichten ins">
+          <select className="input" value={s.aiLanguage} onChange={(e) => setSetting({ aiLanguage: e.target.value })}>
+            {['Deutsch', 'Englisch', 'Türkisch', 'Arabisch', 'Russisch', 'Polnisch', 'Spanisch', 'Französisch', 'Italienisch', 'Ukrainisch', 'Japanisch'].map((l) => <option key={l} value={l}>{l}</option>)}
+          </select>
+        </Field>
+        <Switch checked={s.voiceTranscripts} onChange={(v) => setSetting({ voiceTranscripts: v })} label="Sprachnachrichten als Text mitschicken" desc="Am PC schreibt Zync beim Aufnehmen mit, was du sagst – andere können die Nachricht dann auch lesen (Chrome/Edge)." />
         <div className="sub-label">Spoiler</div>
         <Segmented value={s.spoilers} onChange={(v) => setSetting({ spoilers: v })} options={[{ value: 'click', label: 'Bei Klick zeigen' }, { value: 'always', label: 'Immer zeigen' }]} />
       </Section>
@@ -377,6 +384,7 @@ const SECTIONS = [
   { id: 'keybinds', label: 'Tastenkürzel', icon: <Keyboard size={18} />, el: KeybindSettings },
   { group: 'Sonstiges' },
   { id: 'apps', label: 'Zync-Apps', icon: <Smartphone size={18} />, el: GetAppSettings },
+  { id: 'admin', label: 'Zync-Verwaltung', icon: <Crown size={18} />, el: AdminSettings, owner: true },
   { id: 'about', label: 'Über Zync', icon: <Info size={18} />, el: AboutSettings },
 ];
 
@@ -392,15 +400,17 @@ export function SettingsModal() {
   }, [section]);
   const isMobile = useStore((s) => s.isMobile);
   useBackHandler(!!section && isMobile && !mobileNav, () => setMobileNav(true));
+  const isOwner = useStore((s) => s.isOwner);
   if (!section) return null;
-  const current = SECTIONS.find((s) => s.id === section) || SECTIONS[1];
+  const sections = SECTIONS.filter((s) => !s.owner || isOwner);
+  const current = sections.find((s) => s.id === section) || sections[1];
   const Comp = current.el;
   return createPortal(
     <div className={cx('settings-layer', mobileNav && 'show-nav')}>
       <nav className="settings-nav">
         <div className="sn-inner">
           <div className="sn-mobile-head"><button type="button" className="icon-btn" onClick={closeSettings}><X size={22} /></button><b>Einstellungen</b></div>
-          {SECTIONS.map((s, i) => (s.group
+          {sections.map((s, i) => (s.group
             ? <div key={i} className="sn-group">{s.group}</div>
             : <button key={s.id} type="button" className={cx('sn-item', section === s.id && 'active')} onClick={() => { useStore.setState({ settings: s.id }); setMobileNav(false); }}>{s.icon}{s.label}</button>))}
           <div className="sn-sep" />

@@ -9,6 +9,7 @@ import { api } from './lib/api.js';
 import { playSoundboard } from './lib/sounds.js';
 import { RewardsView } from './components/Rewards.jsx';
 import { StoryViewer } from './components/Stories.jsx';
+import { AiView } from './components/Ai.jsx';
 import { useSettings, matchesShortcut, applySettings } from './lib/settings.js';
 import { voice, useVoice } from './lib/voice.js';
 import { unlockAudio } from './lib/sounds.js';
@@ -45,6 +46,7 @@ function MainContent() {
   const channel = useStore((s) => (view.channelId ? s.channels[view.channelId] : null));
   if (view.serverId === 'discover') return <DiscoverView />;
   if (view.serverId === 'rewards') return <RewardsView />;
+  if (view.serverId === 'ai') return <AiView />;
   if (!view.serverId) return channel ? <ChatView key={channel.id} channel={channel} /> : <FriendsView />;
   if (!channel) {
     return (

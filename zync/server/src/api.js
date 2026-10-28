@@ -17,6 +17,11 @@ import {
   joinServerRoom, leaveServerRoom, leaveServerVoice, dropVoiceChannel,
 } from './realtime.js';
 import { forgetUpload } from './backup.js';
+import { BOTS } from './db.js';
+import { bus } from './bus.js';
+import { ai, aiStatusFor } from './ai.js';
+import { admin } from './admin.js';
+import { isOwner, getSetting } from './settings.js';
 
 export const api = express.Router();
 api.use(express.json({ limit: '1mb' }));
@@ -214,6 +219,7 @@ api.get('/bootstrap', wrap((req) => {
   for (const c of claims) {
     for (const id of [c.fromId, c.toId]) if (!users[id]) users[id] = publicUser(getUser(id));
   }
+  for (const b of Object.values(BOTS)) users[b.id] = publicUser(getUser(b.id));
   progressQuest(me.id, 'login');
 
   return {
@@ -231,6 +237,9 @@ api.get('/bootstrap', wrap((req) => {
     sounds: q.all('SELECT id, name, emoji, url FROM sounds WHERE owner_id = ? ORDER BY created_at', me.id),
     claims,
     rtc: rtcConfig(),
+    ai: aiStatusFor(me),
+    isOwner: isOwner(me),
+    discordLogin: !!(getSetting('discord.clientId') && getSetting('discord.clientSecret')),
   };
 }));
 
@@ -378,6 +387,7 @@ api.post('/relationships', rateLimit({ windowMs: 60_000, max: 30, key: (req) => 
   const raw = String(req.body.username || '').trim().toLowerCase().replace(/^@/, '');
   const target = req.body.userId ? getUser(String(req.body.userId)) : q.get('SELECT * FROM users WHERE username = ?', raw);
   if (!target) fail(404, 'Diesen Nutzer gibt es nicht – prüfe den Benutzernamen.');
+  if (target.bot) fail(400, 'Das ist ein System-Account von Zync – den kannst du nicht hinzufügen.');
   const me = req.user.id;
   if (target.id === me) fail(400, 'Du kannst dich nicht selbst hinzufügen 😄');
   const mine = relationship(me, target.id);
@@ -440,6 +450,7 @@ api.post('/dms', wrap((req) => {
   const me = req.user.id;
   const other = getUser(String(req.body.userId || ''));
   if (!other || other.id === me) fail(404, 'Nutzer nicht gefunden');
+  if (other.bot) fail(400, 'Mit der KI chattest du privat im Bereich „Zync KI“ 🤖');
   const existing = q.get(
     `SELECT c.id FROM channels c JOIN dm_members a ON a.channel_id = c.id JOIN dm_members b ON b.channel_id = c.id
      WHERE c.type = 'dm' AND a.user_id = ? AND b.user_id = ?`, me, other.id,
@@ -896,6 +907,7 @@ api.post('/channels/:id/messages', msgLimit, wrap((req) => {
       voice: true,
       duration: Math.min(600, Math.max(0, Number(a.duration) || 0)),
       waveform: (Array.isArray(a.waveform) ? a.waveform : []).slice(0, 64).map((v) => Math.min(100, Math.max(0, Math.round(Number(v) || 0)))),
+      ...(typeof a.transcript === 'string' && a.transcript.trim() ? { transcript: a.transcript.trim().slice(0, 2000) } : {}),
     } : {}),
   })).filter((a) => a.url);
   let sticker = null;
@@ -919,6 +931,7 @@ api.post('/channels/:id/messages', msgLimit, wrap((req) => {
   const msg = serializeMessages([q.get('SELECT * FROM messages WHERE id = ?', id)])[0];
   emitToChannel(ch, 'message:create', { ...msg, nonce: b.nonce });
   onMessageCreated(ch, req.user.id, msg);
+  bus.emit('message', { ch, msg, authorId: req.user.id });
   return msg;
 }));
 
@@ -1008,6 +1021,8 @@ api.post('/channels/:id/ack', wrap((req) => {
 
 // ---------- Flammen, Stories, Aufgaben, Shop, Claims … ----------
 api.use(features);
+api.use(ai);
+api.use(admin);
 
 // ---------- Fehlerbehandlung ----------
 api.use((err, req, res, next) => {
