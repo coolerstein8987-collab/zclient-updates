@@ -15,6 +15,7 @@ import { RolesSettings, TagSettings, MemberRolesModal } from './RolesSettings.js
 import { socialModal } from './Social.jsx';
 import { StoryComposer } from './Stories.jsx';
 import { AiAssist, AiSummary } from './Ai.jsx';
+import { DiscordBridgeSection } from './Discord.jsx';
 import { PERMS, permsOf } from '../lib/perm.js';
 
 const TEMPLATES = [
@@ -278,6 +279,7 @@ function ChannelModal({ serverId, channelId, category = '', categoryOnly }) {
           <datalist id="zync-cats">{categories.map((c) => <option key={c} value={c} />)}</datalist>
         </Field>
       )}
+      {channel && <DiscordBridgeSection channel={channel} />}
       <div className="modal-actions">
         {channel && <button type="button" className="btn danger-ghost" onClick={del}><Trash2 size={16} /> Löschen</button>}
         <span className="flex-1" />

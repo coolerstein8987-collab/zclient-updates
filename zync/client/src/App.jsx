@@ -10,6 +10,7 @@ import { playSoundboard } from './lib/sounds.js';
 import { RewardsView } from './components/Rewards.jsx';
 import { StoryViewer } from './components/Stories.jsx';
 import { AiView } from './components/Ai.jsx';
+import { handleDiscordReturn } from './components/Discord.jsx';
 import { useSettings, matchesShortcut, applySettings } from './lib/settings.js';
 import { voice, useVoice } from './lib/voice.js';
 import { unlockAudio } from './lib/sounds.js';
@@ -166,6 +167,7 @@ function useGlobalEffects() {
       history.replaceState(null, '', '/');
     }
     if ('serviceWorker' in navigator && import.meta.env.PROD) navigator.serviceWorker.register('/sw.js').catch(() => {});
+    handleDiscordReturn();
   }, []);
 
   useEffect(() => {

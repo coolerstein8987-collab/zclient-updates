@@ -69,6 +69,7 @@ admin.patch('/admin/settings', wrap((req) => {
     aiEnabled: cfg.enabled,
     aiModel: AI_MODELS.find((m) => m.id === cfg.model)?.label || cfg.model,
     discordLogin: !!(getSetting('discord.clientId') && getSetting('discord.clientSecret')),
+    discordBridge: !!getSetting('discord.botToken'),
   });
   bus.emit('config');
   return view(req);

@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { db, UPLOAD_DIR } from './db.js';
 import { backupEnabled, restoreUpload, startBackups } from './backup.js';
+import { initDiscord } from './discord.js';
 import { api } from './api.js';
 import { startTicks } from './features.js';
 import { initRealtime } from './realtime.js';
@@ -72,6 +73,7 @@ const server = tls ? https.createServer(tls, app) : http.createServer(app);
 initRealtime(server);
 startTicks();
 startBackups(db);
+initDiscord();
 
 server.listen(PORT, () => {
   console.log(`⚡ Zync läuft auf ${tls ? 'https' : 'http'}://localhost:${PORT}`);

@@ -7,6 +7,7 @@ import { Spinner, useTilt } from './ui.jsx';
 import { Wordmark } from './Logo.jsx';
 import { StickerArt } from '../lib/stickers.jsx';
 import { AuthAppLink } from './GetApp.jsx';
+import { DiscordLoginButton } from './Discord.jsx';
 
 export function Auth() {
   const [mode, setMode] = useState('login');
@@ -77,6 +78,7 @@ export function Auth() {
             {register ? 'Schon einen Account?' : 'Neu hier?'}{' '}
             <button type="button" onClick={() => { setMode(register ? 'login' : 'register'); setError(''); }}>{register ? 'Anmelden' : 'Account erstellen'}</button>
           </p>
+          <DiscordLoginButton />
           <AuthAppLink />
         </form>
       </div>

@@ -15,6 +15,7 @@ import { ProfileSettings } from './ProfileSettings.jsx';
 import { VoiceSettings, KeyCapture } from './VoiceSettings.jsx';
 import { GetAppSettings } from '../GetApp.jsx';
 import { AdminSettings } from './AdminSettings.jsx';
+import { DiscordAccountSection } from '../Discord.jsx';
 import { useBackHandler } from '../../lib/back.js';
 
 function AccountSettings() {
@@ -56,17 +57,18 @@ function AccountSettings() {
       <Section title="Benutzername">
         <form onSubmit={changeName} className="grid-2 align-end">
           <Field label="Neuer Benutzername"><input className="input" value={uname.username} onChange={(e) => setUname({ ...uname, username: e.target.value.toLowerCase() })} /></Field>
-          <Field label="Aktuelles Passwort"><input className="input" type="password" value={uname.password} onChange={(e) => setUname({ ...uname, password: e.target.value })} autoComplete="current-password" /></Field>
-          <button type="submit" className="btn secondary" disabled={busy || uname.username === me.username || !uname.password}>{busy === 'name' ? <Spinner size={16} /> : 'Benutzernamen ändern'}</button>
+          {me.hasPassword !== false && <Field label="Aktuelles Passwort"><input className="input" type="password" value={uname.password} onChange={(e) => setUname({ ...uname, password: e.target.value })} autoComplete="current-password" /></Field>}
+          <button type="submit" className="btn secondary" disabled={busy || uname.username === me.username || (me.hasPassword !== false && !uname.password)}>{busy === 'name' ? <Spinner size={16} /> : 'Benutzernamen ändern'}</button>
         </form>
       </Section>
-      <Section title="Passwort">
+      <Section title="Passwort" desc={me.hasPassword === false ? 'Du hast dich mit Discord angemeldet. Leg ein Passwort fest, um dich auch ohne Discord anzumelden.' : undefined}>
         <form onSubmit={changePw} className="grid-2 align-end">
-          <Field label="Aktuelles Passwort"><input className="input" type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} autoComplete="current-password" /></Field>
+          {me.hasPassword !== false && <Field label="Aktuelles Passwort"><input className="input" type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} autoComplete="current-password" /></Field>}
           <Field label="Neues Passwort"><input className="input" type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} autoComplete="new-password" /></Field>
-          <button type="submit" className="btn secondary" disabled={busy || !pw.current || pw.next.length < 6}>{busy === 'pw' ? <Spinner size={16} /> : 'Passwort ändern'}</button>
+          <button type="submit" className="btn secondary" disabled={busy || (me.hasPassword !== false && !pw.current) || pw.next.length < 6}>{busy === 'pw' ? <Spinner size={16} /> : me.hasPassword === false ? 'Passwort festlegen' : 'Passwort ändern'}</button>
         </form>
       </Section>
+      <DiscordAccountSection />
       <Section title="Sitzung">
         <button type="button" className="btn danger" onClick={() => openModal('confirm', { title: 'Abmelden?', text: 'Du kannst dich jederzeit wieder anmelden.', confirm: 'Abmelden', danger: true, onConfirm: async () => { closeSettings(); await logout(); } })}><LogOut size={16} /> Abmelden</button>
       </Section>

@@ -218,6 +218,7 @@ export async function bootstrap() {
       ai: d.ai || { enabled: false },
       isOwner: !!d.isOwner,
       discordLogin: !!d.discordLogin,
+      discordBridge: !!d.discordBridge,
       view,
       messages: {},
       hasMore: {},
@@ -573,8 +574,8 @@ export function connectSocket() {
 
   socket.on('channel:ai', ({ channelId, ai }) => set((s) => (s.channels[channelId] ? { channels: { ...s.channels, [channelId]: { ...s.channels[channelId], ai } } } : {})));
   socket.on('ai:notice', ({ text }) => toast(text, 'info', 6000));
-  socket.on('app:config', ({ aiEnabled, aiModel, discordLogin }) => {
-    set((s) => ({ ai: { ...s.ai, enabled: aiEnabled, model: aiModel }, discordLogin }));
+  socket.on('app:config', ({ aiEnabled, aiModel, discordLogin, discordBridge }) => {
+    set((s) => ({ ai: { ...s.ai, enabled: aiEnabled, model: aiModel }, discordLogin, discordBridge }));
     api('/ai/status').then((ai) => set({ ai })).catch(() => {});
   });
   socket.on('sound:create', (snd) => set((s) => (s.sounds.some((x) => x.id === snd.id) ? {} : { sounds: [...s.sounds, snd] })));

@@ -87,5 +87,7 @@ export function selfUser(u) {
     points: u.points,
     owned: [...ownedIds(u)],
     tagServer: u.tag_server,
+    hasPassword: u.password !== '!',
+    discordLinked: !!u.discord_id,
   };
 }

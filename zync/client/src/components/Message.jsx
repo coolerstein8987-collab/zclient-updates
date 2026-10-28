@@ -17,6 +17,7 @@ import { StreakStoryArt, openStoryComposer } from './Stories.jsx';
 import { ExpressionPicker, rememberEmoji } from './ExpressionPicker.jsx';
 import { AiToggleNote, TranslationBlock } from './Ai.jsx';
 import { translateMessage } from '../lib/ai.js';
+import { BridgeNote } from './Discord.jsx';
 
 const JOIN_PHRASES = [
   'ist gerade reingeschneit. ❄️', 'ist da – macht Platz! 🎉', 'ist dem Server beigetreten. Sag hallo! 👋',
@@ -235,6 +236,7 @@ export const Message = memo(function Message({ msg, grouped, serverId, isAdmin, 
   }
 
   if (msg.type === 'ai_toggle') return <AiToggleNote msg={msg} serverId={serverId} />;
+  if (msg.type === 'bridge') return <BridgeNote msg={msg} serverId={serverId} />;
 
   const fromDiscord = msg.meta?.via === 'discord';
   const shown = fromDiscord

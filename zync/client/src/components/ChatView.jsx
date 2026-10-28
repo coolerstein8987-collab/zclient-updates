@@ -298,6 +298,7 @@ export function ChatView({ channel }) {
           <div className="ch-title">
             <Hash size={22} className="ch-hash" />
             <div className="ch-name">{title}</div>
+            {channel.bridge && <span className="bridge-chip" data-tip="Wird mit Discord gespiegelt">🔗 {channel.bridge.name || 'Discord'}</span>}
             {channel.topic && <><span className="ch-divider" /><div className="ch-topic" title={channel.topic}>{channel.topic}</div></>}
           </div>
         )}

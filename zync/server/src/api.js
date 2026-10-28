@@ -21,10 +21,12 @@ import { BOTS } from './db.js';
 import { bus } from './bus.js';
 import { ai, aiStatusFor } from './ai.js';
 import { admin } from './admin.js';
+import { discordAuth, discordApi, notePublicBase } from './discord.js';
 import { isOwner, getSetting } from './settings.js';
 
 export const api = express.Router();
 api.use(express.json({ limit: '1mb' }));
+api.use((req, res, next) => { notePublicBase(req); next(); });
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -160,6 +162,7 @@ api.post('/auth/login', authLimit, wrap((req) => {
   return { token: createSession(user.id) };
 }));
 
+api.use(discordAuth);
 api.use(requireAuth);
 
 api.post('/auth/logout', wrap((req) => {
@@ -240,6 +243,7 @@ api.get('/bootstrap', wrap((req) => {
     ai: aiStatusFor(me),
     isOwner: isOwner(me),
     discordLogin: !!(getSetting('discord.clientId') && getSetting('discord.clientSecret')),
+    discordBridge: !!getSetting('discord.botToken'),
   };
 }));
 
@@ -297,7 +301,7 @@ api.patch('/me', wrap((req) => {
     if (!USERNAME_RE.test(username)) fail(400, 'Benutzername: nur a–z, 0–9, _ und . (2–32 Zeichen)');
     const other = q.get('SELECT id FROM users WHERE username = ?', username);
     if (other && other.id !== u.id) fail(409, 'Benutzername ist schon vergeben');
-    if (!verifyPassword(String(b.password || ''), u.password)) fail(403, 'Passwort falsch');
+    if (u.password !== '!' && !verifyPassword(String(b.password || ''), u.password)) fail(403, 'Passwort falsch');
     set.username = username;
   }
   const keys = Object.keys(set);
@@ -310,7 +314,8 @@ api.patch('/me', wrap((req) => {
 }));
 
 api.post('/me/password', wrap((req) => {
-  if (!verifyPassword(String(req.body.current || ''), req.user.password)) fail(403, 'Aktuelles Passwort falsch');
+  // Wer sich nur mit Discord angemeldet hat, legt hier sein erstes Passwort fest
+  if (req.user.password !== '!' && !verifyPassword(String(req.body.current || ''), req.user.password)) fail(403, 'Aktuelles Passwort falsch');
   const next = String(req.body.next || '');
   if (next.length < 6) fail(400, 'Neues Passwort muss mindestens 6 Zeichen haben');
   q.run('UPDATE users SET password = ? WHERE id = ?', hashPassword(next), req.user.id);
@@ -1023,6 +1028,7 @@ api.post('/channels/:id/ack', wrap((req) => {
 api.use(features);
 api.use(ai);
 api.use(admin);
+api.use(discordApi);
 
 // ---------- Fehlerbehandlung ----------
 api.use((err, req, res, next) => {
