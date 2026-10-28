@@ -1,0 +1,433 @@
+<title>Z Butterfly-Messer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: eine Bühne für das Messer, daneben (Handy: darunter) Steuerung und Anleitung. Bewusst nur dunkel – Neon wirkt nur auf Dunkel. */
+:root {
+  --bg: #0b0f15;
+  --panel: #121821;
+  --panel-2: #18202b;
+  --line: #243041;
+  --fg: #e7ecf3;
+  --muted: #8f9cae;
+  --accent: #dcf43c;
+  --accent-ink: #11160a;
+  --font-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--fg); }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-display); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 6vw, 52px); line-height: 1.02; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 span { color: var(--accent); transition: color .3s; }
+.lede { margin: 4px 0 0; color: var(--muted); max-width: 60ch; }
+.main { display: grid; gap: 24px; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+/* Bühne */
+.stage { position: relative; border: 1px solid var(--line); background: #070a0e; border-radius: 6px; overflow: hidden; aspect-ratio: 4 / 3; max-width: 100%; touch-action: none; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.stage .hint { position: absolute; left: 12px; top: 10px; font-size: 13px; color: var(--muted); pointer-events: none; }
+.stage .cross { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; pointer-events: none; }
+.stage .cross::before, .stage .cross::after { content: ""; position: absolute; background: rgba(255,255,255,.85); mix-blend-mode: difference; }
+.stage .cross::before { left: 8px; top: 0; width: 2px; height: 18px; }
+.stage .cross::after { top: 8px; left: 0; height: 2px; width: 18px; }
+.tick { position: absolute; right: 12px; top: 10px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; pointer-events: none; }
+
+.controls { display: grid; gap: 14px; margin-top: 14px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: 600 14px/1 var(--font-display); letter-spacing: .04em; color: var(--muted); background: transparent; border: 0; padding: 10px 14px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--panel-2); color: var(--fg); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; font: 600 14px/1 var(--font-display); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px 8px 10px; cursor: pointer; }
+.chip i { width: 14px; height: 14px; border-radius: 3px; display: block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
+.chip[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.toggle { font: 600 14px/1 var(--font-display); letter-spacing: .04em; border-radius: 6px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
+.toggle[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Werte */
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; margin: 0; }
+.facts div { background: var(--panel); padding: 12px 14px; display: grid; gap: 2px; }
+.facts dt { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.facts dd { margin: 0; font: 600 20px/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Anleitung */
+aside { display: grid; gap: 22px; }
+section h2 { font-family: var(--font-display); font-size: 20px; margin: 0 0 10px; letter-spacing: .02em; }
+ol.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: s; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; }
+ol.steps li::before { content: counter(s); font: 700 14px/28px var(--font-display); text-align: center; width: 28px; height: 28px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line); color: var(--accent); }
+.dl { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; font: 600 15px/1 var(--font-display); text-decoration: none; color: var(--accent-ink); background: var(--accent); border-radius: 6px; padding: 11px 14px; }
+.dl.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.way { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 8px; }
+.way:first-of-type { border-top: 0; padding-top: 0; }
+.way h3 { margin: 0; font: 600 16px/1.3 var(--font-display); }
+.way p { margin: 0; color: var(--muted); }
+.names { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; }
+.names dt { font-family: var(--font-mono); font-size: 14px; color: var(--fg); }
+.names dd { margin: 0; color: var(--muted); }
+.cmd { position: relative; background: #080b10; border: 1px solid var(--line); border-radius: 6px; }
+.cmd pre { margin: 0; padding: 12px 12px 44px; font: 13px/1.5 var(--font-mono); color: #cfe3ff; white-space: pre-wrap; word-break: break-all; }
+.cmd button { position: absolute; right: 8px; bottom: 8px; font: 600 13px/1 var(--font-display); padding: 8px 12px; border-radius: 5px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); cursor: pointer; }
+.recipe { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--font-display); font-weight: 600; }
+.recipe span { background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; }
+.recipe b { color: var(--muted); font-weight: 500; }
+.note { color: var(--muted); font-size: 14px; max-width: 65ch; }
+kbd { font-family: var(--font-mono); font-size: 13px; background: var(--panel-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; }
+@media (prefers-reduced-motion: reduce) { h1 span { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Ressourcenpaket · Minecraft Java 1.21.11</div>
+    <h1>Z Butterfly-<span>Messer</span></h1>
+    <p class="lede">3D-Balisong mit vier Farben, Flip-Animation und Leucht-Einlagen. Gebaut für den Z Client.</p>
+  </header>
+
+  <div class="main">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="view" aria-label="3D-Vorschau des Butterfly-Messers"></canvas>
+        <div class="cross" id="cross" hidden></div>
+        <div class="tick" id="tick">Tick 0 / 40</div>
+        <div class="hint" id="hint">Ziehen zum Drehen</div>
+      </div>
+      <div class="controls">
+        <div class="row">
+          <div class="seg" role="group" aria-label="Ansicht">
+            <button type="button" id="m-3d" data-mode="3d" aria-pressed="true">3D</button>
+            <button type="button" id="m-fp" data-mode="fp" aria-pressed="false">In der Hand</button>
+            <button type="button" id="m-gui" data-mode="gui" aria-pressed="false">Inventar</button>
+          </div>
+          <button type="button" class="toggle" id="flip" aria-pressed="false">Flip abspielen</button>
+          <button type="button" class="toggle" id="night" aria-pressed="false">Nacht</button>
+        </div>
+        <div class="chips" id="chips" role="group" aria-label="Farbe"></div>
+      </div>
+    </div>
+
+    <aside>
+      <dl class="facts">
+        <div><dt>Bauteile</dt><dd>81</dd></div>
+        <div><dt>Stellungen</dt><dd>17</dd></div>
+        <div><dt>Flip</dt><dd>40 Ticks</dd></div>
+        <div><dt>Textur</dt><dd>256 px</dd></div>
+      </dl>
+
+      <section>
+        <h2>Installieren</h2>
+        <ol class="steps">
+          <li><div>Ressourcenpaket herunterladen (ZIP nicht entpacken).<br>
+            <a class="dl" id="dl-rp" href="https://github.com/coolerstein8987-collab/zclient-updates/raw/claude/discord-clone-app-72l6j2/minecraft/butterfly-messer/Z-Butterfly-Messer-Ressourcenpaket.zip" target="_blank" rel="noopener">Ressourcenpaket (ZIP)</a></div></li>
+          <li><div>In den Ordner <kbd>resourcepacks</kbd> deines Minecraft- bzw. Z-Client-Ordners legen.</div></li>
+          <li><div>Im Spiel unter <b>Optionen → Ressourcenpakete</b> aktivieren.</div></li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Messer bekommen</h2>
+        <div class="way">
+          <h3>Im Amboss umbenennen</h3>
+          <p>Geht im Überleben und auf Servern, mit jedem Schwert. Ohne Flip.</p>
+          <dl class="names">
+            <dt>Butterfly</dt><dd>Neon</dd>
+            <dt>Butterfly Rot</dt><dd>Rot</dd>
+            <dt>Butterfly Gold</dt><dd>Gold</dd>
+            <dt>Butterfly Blau</dt><dd>Blau</dd>
+          </dl>
+        </div>
+        <div class="way">
+          <h3>Befehl (Cheats an), mit Flip</h3>
+          <div class="cmd"><pre id="cmd"></pre><button type="button" id="copy">Kopieren</button></div>
+        </div>
+        <div class="way">
+          <h3>Datenpaket: Herstellen, mit Flip</h3>
+          <div class="recipe"><span>Eisenschwert</span><b>+</b><span id="dye">Hellgrüner Farbstoff</span><b>+</b><span>Glowstone-Staub</span></div>
+          <p>Oder <kbd id="fn">/function zknife:neon</kbd>. Datenpaket in den Ordner <kbd>datapacks</kbd> der Welt legen.</p>
+          <a class="dl ghost" href="https://github.com/coolerstein8987-collab/zclient-updates/raw/claude/discord-clone-app-72l6j2/minecraft/butterfly-messer/Z-Butterfly-Messer-Datenpaket.zip" target="_blank" rel="noopener">Datenpaket (ZIP)</a>
+        </div>
+      </section>
+
+      <p class="note">Flip: rechte Maustaste gedrückt halten. Andere Spieler sehen das Modell nur, wenn sie das Paket auch aktiviert haben. Eigenes Design nach dem Vorbild des Valorant-Messers, ohne Logos von Riot.</p>
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+window.KNIFE = __KNIFE_DATA__;
+</script>
+<script>
+(function () {
+  const K = window.KNIFE;
+  const DYES = { neon: 'Hellgrüner Farbstoff', rot: 'Roter Farbstoff', gold: 'Gelber Farbstoff', blau: 'Hellblauer Farbstoff' };
+  const INK = { neon: '#11160a', rot: '#fff4f4', gold: '#1a1405', blau: '#f2f7ff' };
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const FACE_VERTS = {
+    down: [[0,0,1],[0,0,0],[1,0,0],[1,0,1]], up: [[0,1,0],[0,1,1],[1,1,1],[1,1,0]],
+    north: [[1,1,0],[1,0,0],[0,0,0],[0,1,0]], south: [[0,1,1],[0,0,1],[1,0,1],[1,1,1]],
+    west: [[0,1,0],[0,0,0],[0,0,1],[0,1,1]], east: [[1,1,1],[1,0,1],[1,0,0],[1,1,0]],
+  };
+  const AX = { x: new THREE.Vector3(1,0,0), y: new THREE.Vector3(0,1,0), z: new THREE.Vector3(0,0,1) };
+
+  // Minecraft-Elemente -> Geometrie (wie das Spiel: Eckreihenfolge, UVs, Drehung um den Ursprung)
+  function buildGeometry(elements) {
+    const pos = [], uv = [], nor = [], emi = [], idx = [];
+    for (const el of elements) {
+      const r = el.rotation;
+      const q = r ? new THREE.Quaternion().setFromAxisAngle(AX[r.axis], r.angle * Math.PI / 180) : null;
+      const o = r ? new THREE.Vector3(r.origin[0], r.origin[1], r.origin[2]) : null;
+      const e = (el.light_emission || 0) / 15;
+      for (const face in el.faces) {
+        const f = el.faces[face];
+        const c = [[f.uv[0], f.uv[1]], [f.uv[0], f.uv[3]], [f.uv[2], f.uv[3]], [f.uv[2], f.uv[1]]];
+        const base = pos.length / 3;
+        const pts = FACE_VERTS[face].map(function (v) {
+          const p = new THREE.Vector3(v[0] ? el.to[0] : el.from[0], v[1] ? el.to[1] : el.from[1], v[2] ? el.to[2] : el.from[2]);
+          if (q) p.sub(o).applyQuaternion(q).add(o);
+          return p;
+        });
+        const n = new THREE.Vector3().subVectors(pts[1], pts[0]).cross(new THREE.Vector3().subVectors(pts[3], pts[0])).normalize();
+        pts.forEach(function (p, i) {
+          pos.push(p.x / 16, p.y / 16, p.z / 16);
+          uv.push(c[i][0] / 16, 1 - c[i][1] / 16);
+          nor.push(n.x, n.y, n.z);
+          emi.push(e);
+        });
+        idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+    g.setAttribute('emission', new THREE.Float32BufferAttribute(emi, 1));
+    g.setIndex(idx);
+    return g;
+  }
+
+  const canvas = document.getElementById('view');
+  const stage = document.getElementById('stage');
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  } catch (e) {
+    document.getElementById('hint').textContent = 'Dein Browser kann hier kein 3D anzeigen.';
+    return;
+  }
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      map: { value: null }, sky: { value: 1 }, flatGui: { value: 0 },
+      L0: { value: new THREE.Vector3(0.2, 1, -0.7).normalize() }, L1: { value: new THREE.Vector3(-0.2, 1, 0.7).normalize() },
+    },
+    vertexShader: 'attribute float emission; varying vec2 vUv; varying vec3 vN; varying float vE;' +
+      'void main(){ vUv = uv; vE = emission; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform sampler2D map; uniform float sky; uniform float flatGui; uniform vec3 L0; uniform vec3 L1;' +
+      'varying vec2 vUv; varying vec3 vN; varying float vE;' +
+      'void main(){ vec4 t = texture2D(map, vUv); if (t.a < 0.1) discard; vec3 n = normalize(vN);' +
+      'float d = min(1.0, (max(0.0, dot(L0, n)) + max(0.0, dot(L1, n))) * 0.6 + 0.4);' +
+      'float df = min(1.0, 0.55 + 0.45 * abs(n.z) + 0.15 * max(0.0, n.y)); d = mix(d, df, flatGui);' +
+      'gl_FragColor = vec4(t.rgb * d * max(sky, vE), 1.0); }',
+  });
+
+  const textures = {};
+  function texture(v) {
+    if (!textures[v]) {
+      const t = new THREE.TextureLoader().load(K.variants[v].texture, function () { dirty = true; });
+      t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false;
+      textures[v] = t;
+    }
+    return textures[v];
+  }
+  const geos = {};
+  function geo(frame) { return geos[frame] || (geos[frame] = buildGeometry(K.frames[frame])); }
+
+  function displayMatrix(tr) {
+    const m = new THREE.Matrix4();
+    if (!tr) return m;
+    const t = tr.translation || [0,0,0], r = tr.rotation || [0,0,0], s = tr.scale || [1,1,1];
+    m.makeTranslation(t[0] / 16, t[1] / 16, t[2] / 16);
+    m.multiply(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(r[0] * Math.PI / 180, r[1] * Math.PI / 180, r[2] * Math.PI / 180, 'XYZ')));
+    return m.multiply(new THREE.Matrix4().makeScale(s[0], s[1], s[2]));
+  }
+  const CENTER = new THREE.Matrix4().makeTranslation(-0.5, -0.5, -0.5);
+
+  // Szene
+  const scene = new THREE.Scene();
+  const knife = new THREE.Mesh(geo('s0'), material);
+  knife.matrixAutoUpdate = false;
+  scene.add(knife);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshBasicMaterial({ color: 0x5b9b3a }));
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -1.62; scene.add(ground);
+  const slots = new THREE.Group(); scene.add(slots);
+  const persp = new THREE.PerspectiveCamera(35, 1, 0.02, 100);
+  const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
+
+  const state = { variant: 'neon', mode: '3d', flip: false, night: false, yaw: 0.35, pitch: 0.22, t0: performance.now(), tick: 0 };
+  let dirty = true, dragging = false, lastX = 0, lastY = 0, idleSince = performance.now();
+
+  function buildSlots(w, h) {
+    while (slots.children.length) slots.remove(slots.children[0]);
+    const unit = Math.min(w / 11, h / 4.2);
+    const make = function (x, y, s, sel) {
+      const outer = new THREE.Mesh(new THREE.PlaneGeometry(s * 1.125, s * 1.125), new THREE.MeshBasicMaterial({ color: sel ? 0xe9e9e9 : 0x373737 }));
+      outer.position.set(x, y, -50); slots.add(outer);
+      const inner = new THREE.Mesh(new THREE.PlaneGeometry(s, s), new THREE.MeshBasicMaterial({ color: 0x8b8b8b }));
+      inner.position.set(x, y, -49); slots.add(inner);
+    };
+    const big = Math.min(w, h) * 0.52;
+    make(0, h * 0.1, big, false);
+    for (let i = 0; i < 9; i++) make((i - 4) * unit * 1.125, -h / 2 + unit * 0.85, unit, i === 0);
+    return { big: big, unit: unit };
+  }
+
+  let layout = { big: 1, unit: 1 };
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false);
+    persp.aspect = w / h; persp.updateProjectionMatrix();
+    ortho.left = -w / 2; ortho.right = w / 2; ortho.top = h / 2; ortho.bottom = -h / 2; ortho.updateProjectionMatrix();
+    layout = buildSlots(w, h);
+    dirty = true;
+  }
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
+
+  function frameName() { return state.flip ? K.timeline[state.tick % K.timeline.length] : 's0'; }
+
+  function render(now) {
+    if (state.flip) {
+      const tick = Math.floor((now - state.t0) / 50);
+      if (tick !== state.tick) { state.tick = tick; dirty = true; document.getElementById('tick').textContent = 'Tick ' + (tick % 40) + ' / 40'; }
+    }
+    if (state.mode === '3d' && !dragging && !reduced && now - idleSince > 1500) { state.yaw += 0.004; dirty = true; }
+    if (!dirty) return requestAnimationFrame(render);
+    dirty = false;
+    const night = state.night;
+    material.uniforms.map.value = texture(state.variant);
+    material.uniforms.sky.value = night ? 0.12 : 1;
+    knife.geometry = geo(frameName());
+    ground.visible = state.mode === 'fp';
+    slots.visible = state.mode === 'gui';
+    material.uniforms.flatGui.value = state.mode === 'gui' ? 1 : 0;
+    let cam = persp;
+    if (state.mode === '3d') {
+      scene.background = new THREE.Color(night ? 0x05070b : 0x10161f);
+      persp.fov = 35; persp.updateProjectionMatrix();
+      const d = 1.55;
+      persp.position.set(Math.sin(state.yaw) * Math.cos(state.pitch) * d, Math.sin(state.pitch) * d, Math.cos(state.yaw) * Math.cos(state.pitch) * d);
+      persp.lookAt(0, 0, 0);
+      knife.matrix.copy(CENTER);
+    } else if (state.mode === 'fp') {
+      scene.background = new THREE.Color(night ? 0x0a0f1e : 0x8fb8f0);
+      ground.material.color.set(night ? 0x0c1a0c : 0x5b9b3a);
+      persp.fov = 70; persp.updateProjectionMatrix();
+      persp.position.set(0, 0, 0); persp.lookAt(0, 0, -1);
+      knife.matrix.makeTranslation(0.56, -0.52, -0.72).multiply(displayMatrix(K.display.firstperson_righthand)).multiply(CENTER);
+    } else {
+      cam = ortho;
+      scene.background = new THREE.Color(night ? 0x1e1e1e : 0xc6c6c6);
+      knife.matrix.makeTranslation(0, stage.clientHeight * 0.1, 0).multiply(new THREE.Matrix4().makeScale(layout.big, layout.big, layout.big)).multiply(CENTER);
+      knife.updateMatrixWorld(true);
+      renderer.autoClear = true;
+      renderer.render(scene, cam);
+      renderer.autoClear = false;
+      // kleines Symbol im ersten Hotbar-Platz
+      const small = knife.matrix.clone();
+      const u = layout.unit;
+      knife.matrix.makeTranslation(-4 * u * 1.125, -stage.clientHeight / 2 + u * 0.85, 0).multiply(new THREE.Matrix4().makeScale(u, u, u)).multiply(CENTER);
+      knife.updateMatrixWorld(true);
+      const bg = scene.background; scene.background = null; slots.visible = false;
+      renderer.render(scene, cam);
+      scene.background = bg; knife.matrix.copy(small); renderer.autoClear = true;
+      return requestAnimationFrame(render);
+    }
+    knife.updateMatrixWorld(true);
+    renderer.render(scene, cam);
+    requestAnimationFrame(render);
+  }
+
+  // Steuerung
+  const chips = document.getElementById('chips');
+  K.order.forEach(function (v) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.id = 'v-' + v; b.dataset.v = v;
+    b.setAttribute('aria-pressed', v === state.variant ? 'true' : 'false');
+    b.innerHTML = '<i style="background:' + K.variants[v].color + '"></i>' + K.variants[v].name;
+    chips.appendChild(b);
+  });
+  function setVariant(v) {
+    state.variant = v;
+    chips.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', c.dataset.v === v ? 'true' : 'false'); });
+    document.documentElement.style.setProperty('--accent', K.variants[v].color);
+    document.documentElement.style.setProperty('--accent-ink', INK[v]);
+    document.getElementById('cmd').textContent = K.variants[v].give;
+    document.getElementById('dye').textContent = DYES[v];
+    document.getElementById("fn").textContent = '/function zknife:' + v;
+    dirty = true;
+  }
+  chips.addEventListener('click', function (e) { const b = e.target.closest('.chip'); if (b) setVariant(b.dataset.v); });
+  document.querySelectorAll('.seg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.mode = b.dataset.mode;
+      document.querySelectorAll('.seg button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      document.getElementById('cross').hidden = state.mode !== 'fp';
+      document.getElementById('hint').textContent = state.mode === '3d' ? 'Ziehen zum Drehen' : state.mode === 'fp' ? 'So siehst du es in der Hand' : 'So sieht es im Inventar aus';
+      dirty = true;
+    });
+  });
+  const flipBtn = document.getElementById('flip');
+  flipBtn.addEventListener('click', function () {
+    state.flip = !state.flip; state.t0 = performance.now(); state.tick = 0;
+    flipBtn.setAttribute('aria-pressed', state.flip ? 'true' : 'false');
+    flipBtn.textContent = state.flip ? 'Flip stoppen' : 'Flip abspielen';
+    document.getElementById('tick').hidden = !state.flip;
+    dirty = true;
+  });
+  document.getElementById('tick').hidden = true;
+  const nightBtn = document.getElementById('night');
+  nightBtn.addEventListener('click', function () {
+    state.night = !state.night; nightBtn.setAttribute('aria-pressed', state.night ? 'true' : 'false'); dirty = true;
+  });
+  document.getElementById('copy').addEventListener('click', function () {
+    const btn = this, text = document.getElementById('cmd').textContent;
+    const done = function () { btn.textContent = 'Kopiert'; setTimeout(function () { btn.textContent = 'Kopieren'; }, 1600); };
+    const select = function () { const r = document.createRange(); r.selectNodeContents(document.getElementById('cmd')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Markiert – jetzt kopieren'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, select); else select();
+  });
+  stage.addEventListener('pointerdown', function (e) {
+    if (state.mode !== '3d') return;
+    dragging = true; lastX = e.clientX; lastY = e.clientY; stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    state.yaw -= (e.clientX - lastX) * 0.01;
+    state.pitch = Math.max(-1.2, Math.min(1.2, state.pitch + (e.clientY - lastY) * 0.01));
+    lastX = e.clientX; lastY = e.clientY; dirty = true;
+  });
+  const end = function () { dragging = false; idleSince = performance.now(); };
+  stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+
+  setVariant('neon');
+  resize();
+  requestAnimationFrame(render);
+})();
+</script>

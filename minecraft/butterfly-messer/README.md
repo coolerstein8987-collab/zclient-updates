@@ -67,5 +67,5 @@ pip install pillow
 python3 tools/build.py
 ```
 
-Die Pakete landen wieder in diesem Ordner. Die entpackten Dateien und die Daten für die 3D-Vorschau
-(`tools/knife-view.js`) kommen nach `build/`.
+Die Pakete landen wieder in diesem Ordner. Die entpackten Dateien und eine 3D-Vorschau zum Drehen und
+Flippen (`build/vorschau.html`, im Browser öffnen) kommen nach `build/`.

@@ -668,7 +668,7 @@ def zip_dir(src, dst):
 
 
 def export_preview(out, parts):
-    """Daten für die 3D-Vorschau (vorschau.html): Modelle, Anzeige-Werte, Texturen, Animation."""
+    """3D-Vorschau (build/vorschau.html) mit eingebetteten Modellen, Texturen und Animation."""
     import base64
     import io
     data = {'frames': {n: frame_model(parts, n)['elements'] for n in FRAMES}, 'display': DISPLAY,
@@ -679,8 +679,12 @@ def export_preview(out, parts):
         data['variants'][v] = {'name': VARIANTS[v]['name'], 'color': '#%02x%02x%02x' % VARIANTS[v]['inlay'],
                                'texture': 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode(),
                                'give': chat_command(v)}
-    with open(os.path.join(out, 'knife-data.js'), 'w', encoding='utf-8') as f:
-        f.write('window.KNIFE = ' + json.dumps(data, separators=(',', ':')) + ';\n')
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, 'vorschau-vorlage.html'), encoding='utf-8') as f:
+        page = f.read().replace('__KNIFE_DATA__', json.dumps(data, separators=(',', ':')))
+    with open(os.path.join(out, 'vorschau.html'), 'w', encoding='utf-8') as f:
+        f.write('<!doctype html>\n<meta charset="utf-8">\n'
+                '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' + page)
 
 
 def build(out):
