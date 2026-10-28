@@ -1,0 +1,506 @@
+{
+ "duration": 29.93,
+ "fps": 30,
+ "lines": [
+  {
+   "id": 1,
+   "text": "Du wirst in der Wüste Ägyptens ausgesetzt. So überlebst du.",
+   "start": 0.2,
+   "end": 3.75,
+   "words": [
+    {
+     "w": "Du",
+     "t0": 0.23,
+     "t1": 0.417,
+     "em": false
+    },
+    {
+     "w": "wirst",
+     "t0": 0.417,
+     "t1": 0.603,
+     "em": false
+    },
+    {
+     "w": "in",
+     "t0": 0.603,
+     "t1": 0.79,
+     "em": false
+    },
+    {
+     "w": "der",
+     "t0": 0.79,
+     "t1": 0.977,
+     "em": false
+    },
+    {
+     "w": "Wüste",
+     "t0": 0.977,
+     "t1": 1.35,
+     "em": false
+    },
+    {
+     "w": "Ägyptens",
+     "t0": 1.35,
+     "t1": 1.91,
+     "em": false
+    },
+    {
+     "w": "ausgesetzt.",
+     "t0": 1.91,
+     "t1": 2.47,
+     "em": true
+    },
+    {
+     "w": "So",
+     "t0": 2.64,
+     "t1": 2.86,
+     "em": false
+    },
+    {
+     "w": "überlebst",
+     "t0": 2.86,
+     "t1": 3.52,
+     "em": true
+    },
+    {
+     "w": "du.",
+     "t0": 3.52,
+     "t1": 3.74,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "text": "Regel eins: Es wird bis zu 50[fünfzig] Grad heiß. Also tagsüber Schatten, laufen nur nachts.",
+   "start": 3.93,
+   "end": 9.44,
+   "words": [
+    {
+     "w": "Regel",
+     "t0": 3.96,
+     "t1": 4.413,
+     "em": false
+    },
+    {
+     "w": "eins:",
+     "t0": 4.413,
+     "t1": 4.64,
+     "em": false
+    },
+    {
+     "w": "Es",
+     "t0": 4.81,
+     "t1": 5.045,
+     "em": false
+    },
+    {
+     "w": "wird",
+     "t0": 5.045,
+     "t1": 5.28,
+     "em": false
+    },
+    {
+     "w": "bis",
+     "t0": 5.28,
+     "t1": 5.515,
+     "em": false
+    },
+    {
+     "w": "zu",
+     "t0": 5.515,
+     "t1": 5.75,
+     "em": false
+    },
+    {
+     "w": "50",
+     "t0": 5.75,
+     "t1": 6.22,
+     "em": true
+    },
+    {
+     "w": "Grad",
+     "t0": 6.22,
+     "t1": 6.455,
+     "em": false
+    },
+    {
+     "w": "heiß.",
+     "t0": 6.455,
+     "t1": 6.69,
+     "em": true
+    },
+    {
+     "w": "Also",
+     "t0": 6.86,
+     "t1": 7.237,
+     "em": false
+    },
+    {
+     "w": "tagsüber",
+     "t0": 7.237,
+     "t1": 7.803,
+     "em": false
+    },
+    {
+     "w": "Schatten,",
+     "t0": 7.803,
+     "t1": 8.18,
+     "em": true
+    },
+    {
+     "w": "laufen",
+     "t0": 8.35,
+     "t1": 8.89,
+     "em": false
+    },
+    {
+     "w": "nur",
+     "t0": 8.89,
+     "t1": 9.16,
+     "em": false
+    },
+    {
+     "w": "nachts.",
+     "t0": 9.16,
+     "t1": 9.43,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "text": "Regel zwei: Kleidung anlassen. Sie spart Wasser.",
+   "start": 9.62,
+   "end": 12.38,
+   "words": [
+    {
+     "w": "Regel",
+     "t0": 9.65,
+     "t1": 10.117,
+     "em": false
+    },
+    {
+     "w": "zwei:",
+     "t0": 10.117,
+     "t1": 10.35,
+     "em": false
+    },
+    {
+     "w": "Kleidung",
+     "t0": 10.5,
+     "t1": 10.872,
+     "em": true
+    },
+    {
+     "w": "anlassen.",
+     "t0": 10.872,
+     "t1": 11.43,
+     "em": false
+    },
+    {
+     "w": "Sie",
+     "t0": 11.58,
+     "t1": 11.777,
+     "em": false
+    },
+    {
+     "w": "spart",
+     "t0": 11.777,
+     "t1": 11.975,
+     "em": false
+    },
+    {
+     "w": "Wasser.",
+     "t0": 11.975,
+     "t1": 12.37,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "text": "Vorsicht vor Hornvipern und dem Deathstalker[Detsstorker], einem der giftigsten Skorpione der Welt.",
+   "start": 12.56,
+   "end": 17.24,
+   "words": [
+    {
+     "w": "Vorsicht",
+     "t0": 12.59,
+     "t1": 13.05,
+     "em": false
+    },
+    {
+     "w": "vor",
+     "t0": 13.05,
+     "t1": 13.28,
+     "em": false
+    },
+    {
+     "w": "Hornvipern",
+     "t0": 13.28,
+     "t1": 13.97,
+     "em": true
+    },
+    {
+     "w": "und",
+     "t0": 13.97,
+     "t1": 14.2,
+     "em": false
+    },
+    {
+     "w": "dem",
+     "t0": 14.2,
+     "t1": 14.43,
+     "em": false
+    },
+    {
+     "w": "Deathstalker,",
+     "t0": 14.43,
+     "t1": 15.12,
+     "em": true
+    },
+    {
+     "w": "einem",
+     "t0": 15.28,
+     "t1": 15.635,
+     "em": false
+    },
+    {
+     "w": "der",
+     "t0": 15.635,
+     "t1": 15.812,
+     "em": false
+    },
+    {
+     "w": "giftigsten",
+     "t0": 15.812,
+     "t1": 16.344,
+     "em": true
+    },
+    {
+     "w": "Skorpione",
+     "t0": 16.344,
+     "t1": 16.875,
+     "em": false
+    },
+    {
+     "w": "der",
+     "t0": 16.875,
+     "t1": 17.053,
+     "em": false
+    },
+    {
+     "w": "Welt.",
+     "t0": 17.053,
+     "t1": 17.23,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "text": "Gebissen? Ruhig bleiben und stillhalten. Nicht aussaugen, nicht abbinden. Und Hilfe rufen.",
+   "start": 17.42,
+   "end": 23.05,
+   "words": [
+    {
+     "w": "Gebissen?",
+     "t0": 17.45,
+     "t1": 17.84,
+     "em": true
+    },
+    {
+     "w": "Ruhig",
+     "t0": 18.01,
+     "t1": 18.427,
+     "em": false
+    },
+    {
+     "w": "bleiben",
+     "t0": 18.427,
+     "t1": 18.845,
+     "em": false
+    },
+    {
+     "w": "und",
+     "t0": 18.845,
+     "t1": 19.054,
+     "em": false
+    },
+    {
+     "w": "stillhalten.",
+     "t0": 19.054,
+     "t1": 19.68,
+     "em": true
+    },
+    {
+     "w": "Nicht",
+     "t0": 19.85,
+     "t1": 20.08,
+     "em": false
+    },
+    {
+     "w": "aussaugen,",
+     "t0": 20.08,
+     "t1": 20.77,
+     "em": true
+    },
+    {
+     "w": "nicht",
+     "t0": 20.88,
+     "t1": 21.095,
+     "em": false
+    },
+    {
+     "w": "abbinden.",
+     "t0": 21.095,
+     "t1": 21.74,
+     "em": true
+    },
+    {
+     "w": "Und",
+     "t0": 21.91,
+     "t1": 22.138,
+     "em": false
+    },
+    {
+     "w": "Hilfe",
+     "t0": 22.138,
+     "t1": 22.594,
+     "em": true
+    },
+    {
+     "w": "rufen.",
+     "t0": 22.594,
+     "t1": 23.05,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "text": "Und jetzt du: Zuerst Wasser oder Essen?",
+   "start": 23.23,
+   "end": 25.69,
+   "words": [
+    {
+     "w": "Und",
+     "t0": 23.26,
+     "t1": 23.49,
+     "em": false
+    },
+    {
+     "w": "jetzt",
+     "t0": 23.49,
+     "t1": 23.72,
+     "em": false
+    },
+    {
+     "w": "du:",
+     "t0": 23.72,
+     "t1": 23.95,
+     "em": false
+    },
+    {
+     "w": "Zuerst",
+     "t0": 24.11,
+     "t1": 24.334,
+     "em": false
+    },
+    {
+     "w": "Wasser",
+     "t0": 24.334,
+     "t1": 24.783,
+     "em": true
+    },
+    {
+     "w": "oder",
+     "t0": 24.783,
+     "t1": 25.231,
+     "em": false
+    },
+    {
+     "w": "Essen?",
+     "t0": 25.231,
+     "t1": 25.68,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "text": "Stimm ab in den Kommentaren. Der Gewinner kommt im nächsten Teil!",
+   "start": 25.87,
+   "end": 28.93,
+   "words": [
+    {
+     "w": "Stimm",
+     "t0": 25.9,
+     "t1": 26.06,
+     "em": false
+    },
+    {
+     "w": "ab",
+     "t0": 26.06,
+     "t1": 26.22,
+     "em": false
+    },
+    {
+     "w": "in",
+     "t0": 26.22,
+     "t1": 26.38,
+     "em": false
+    },
+    {
+     "w": "den",
+     "t0": 26.38,
+     "t1": 26.54,
+     "em": false
+    },
+    {
+     "w": "Kommentaren.",
+     "t0": 26.54,
+     "t1": 27.18,
+     "em": true
+    },
+    {
+     "w": "Der",
+     "t0": 27.35,
+     "t1": 27.524,
+     "em": false
+    },
+    {
+     "w": "Gewinner",
+     "t0": 27.524,
+     "t1": 28.048,
+     "em": true
+    },
+    {
+     "w": "kommt",
+     "t0": 28.048,
+     "t1": 28.222,
+     "em": false
+    },
+    {
+     "w": "im",
+     "t0": 28.222,
+     "t1": 28.397,
+     "em": false
+    },
+    {
+     "w": "nächsten",
+     "t0": 28.397,
+     "t1": 28.746,
+     "em": false
+    },
+    {
+     "w": "Teil!",
+     "t0": 28.746,
+     "t1": 28.92,
+     "em": false
+    }
+   ]
+  }
+ ]
+}

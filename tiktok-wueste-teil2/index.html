@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Wüste Ägypten</title>
+<style>
+@font-face { font-family: 'Anton'; src: url('node_modules/@fontsource/anton/files/anton-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Anton'; src: url('node_modules/@fontsource/anton/files/anton-latin-ext-400-normal.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+:root { --cyan: #3ee8ff; --pink: #ff2e63; --yellow: #ffe135; --tt: #fe2c55; }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+#gl { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+#ui { position: absolute; inset: 0; overflow: hidden; color: #fff; font-family: 'Inter', sans-serif; }
+.shade-top { position: absolute; left: 0; right: 0; top: 0; height: 700px; background: linear-gradient(rgba(0,0,0,.62), rgba(0,0,0,0)); }
+.shade-bot { position: absolute; left: 0; right: 0; bottom: 0; height: 760px; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.55)); }
+
+#tag { position: absolute; left: 64px; top: 166px; padding: 10px 22px 10px 18px; border-radius: 40px; background: rgba(8,18,32,.62);
+  border: 2px solid rgba(62,232,255,.55); font: 800 30px Inter; letter-spacing: 2px; box-shadow: 0 0 22px rgba(62,232,255,.25); }
+#tag b { color: var(--cyan); }
+#live { position: absolute; right: 64px; top: 172px; font: 700 26px 'DejaVu Sans Mono', monospace; letter-spacing: 1px; color: rgba(255,255,255,.85);
+  text-shadow: 0 2px 8px #000; }
+#live i { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--pink); margin-right: 10px; box-shadow: 0 0 12px var(--pink); vertical-align: 1px; }
+
+#head { position: absolute; left: 40px; right: 40px; top: 250px; text-align: center; filter: drop-shadow(0 0 26px rgba(62,232,255,.45)) drop-shadow(0 8px 10px rgba(0,0,0,.6)); }
+.h1 { font-family: Anton, Impact, sans-serif; font-size: 138px; line-height: 1.02; letter-spacing: 1px; text-transform: uppercase; color: #f2fdff; }
+.h1.red { color: #ffe9ee; }
+.h1 .big { font-size: 172px; }
+.h2 { display: inline-block; font: 800 36px Inter; letter-spacing: 7px; color: var(--cyan); margin-top: 14px; padding: 8px 18px; border-radius: 10px; background: rgba(4,10,20,.6); text-transform: uppercase; }
+.h2.red { color: #ff5c80; }
+
+#chips { position: absolute; left: 0; right: 0; top: 560px; display: flex; justify-content: center; gap: 22px; }
+.chip { padding: 14px 24px; border-radius: 18px; font: 800 34px Inter; background: rgba(8,16,28,.72); border: 2px solid rgba(255,255,255,.25); white-space: nowrap; }
+.chip small { display: block; font: 700 22px Inter; letter-spacing: 3px; opacity: .75; margin-bottom: 4px; }
+.chip.bad { border-color: rgba(255,46,99,.8); box-shadow: 0 0 24px rgba(255,46,99,.35); }
+.chip.good { border-color: rgba(62,232,255,.9); box-shadow: 0 0 28px rgba(62,232,255,.45); }
+
+#cap { position: absolute; left: 50px; right: 50px; top: 1236px; text-align: center; line-height: 1.12; }
+.cw { display: inline-block; margin: 0 14px; font: 900 82px Inter; text-transform: uppercase; letter-spacing: -1px; color: #fff;
+  text-shadow: 0 0 3px #000, 0 5px 0 #000, 5px 0 0 #000, -5px 0 0 #000, 0 -5px 0 #000, 4px 4px 0 #000, -4px 4px 0 #000, 4px -4px 0 #000, -4px -4px 0 #000, 0 14px 28px rgba(0,0,0,.6);
+  transform-origin: 50% 60%; }
+.cw.on { color: var(--yellow); }
+.cw.on.em { color: var(--pink); }
+#cap.hero .cw { font-size: 96px; }
+
+.lbl { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; font: 800 30px Inter; padding: 8px 18px; border-radius: 14px;
+  background: rgba(6,14,26,.72); border: 2px solid var(--cyan); color: #fff; box-shadow: 0 0 22px rgba(62,232,255,.35); text-align: center; }
+.lbl small { display: block; font: 700 23px Inter; color: var(--cyan); letter-spacing: 1px; }
+.lbl.red { border-color: var(--pink); box-shadow: 0 0 24px rgba(255,46,99,.5); }
+.lbl.red small { color: #ff8fa6; }
+.lbl.plain { background: none; border: none; box-shadow: none; font: 900 64px Anton; letter-spacing: 2px; text-shadow: 0 0 18px rgba(62,232,255,.8), 0 4px 10px #000; }
+
+.corner { position: absolute; width: 64px; height: 64px; border: 0 solid rgba(255,255,255,.55); }
+.c1 { left: 40px; top: 140px; border-top-width: 4px; border-left-width: 4px; }
+.c2 { right: 40px; top: 140px; border-top-width: 4px; border-right-width: 4px; }
+.c3 { left: 40px; top: 1556px; border-bottom-width: 4px; border-left-width: 4px; }
+.c4 { right: 40px; top: 1556px; border-bottom-width: 4px; border-right-width: 4px; }
+
+#cta { position: absolute; left: 0; right: 0; top: 1060px; text-align: center; }
+#cta .avatar { position: relative; width: 190px; height: 190px; margin: 0 auto; border-radius: 50%; font-size: 130px; line-height: 190px;
+  background: radial-gradient(circle at 35% 30%, #1d3b5c, #050b14); border: 6px solid #fff; box-shadow: 0 0 40px rgba(62,232,255,.6); }
+#cta .plus { position: absolute; left: 50%; bottom: -30px; width: 66px; height: 66px; margin-left: -33px; border-radius: 50%; background: var(--tt);
+  color: #fff; font: 900 52px/64px Inter; box-shadow: 0 0 20px rgba(254,44,85,.8); }
+#cta .plus.done { background: #fff; color: var(--tt); }
+#cta .btn { display: inline-block; margin-top: 54px; padding: 22px 64px; border-radius: 18px; background: var(--tt); font: 900 52px Inter; letter-spacing: 2px;
+  box-shadow: 0 10px 40px rgba(254,44,85,.55); }
+#cta .btn.done { background: rgba(255,255,255,.14); border: 3px solid rgba(255,255,255,.6); }
+#cta .next { margin-top: 34px; font: 800 40px Inter; text-shadow: 0 3px 10px #000; }
+#hand { position: absolute; font-size: 120px; filter: drop-shadow(0 8px 12px rgba(0,0,0,.6)); }
+
+#cards { position: absolute; left: 70px; right: 70px; top: 560px; }
+.card { display: flex; align-items: center; gap: 22px; margin-bottom: 22px; padding: 20px 28px; border-radius: 22px; font: 900 44px Inter; letter-spacing: .5px;
+  background: rgba(8,14,24,.78); border: 3px solid rgba(255,255,255,.18); box-shadow: 0 12px 40px rgba(0,0,0,.45); transform-origin: 0 50%; }
+.card .ic { width: 70px; height: 70px; border-radius: 18px; display: grid; place-items: center; font: 900 46px Inter; flex: none; }
+.card.ok { border-color: rgba(62,255,160,.75); } .card.ok .ic { background: #1fd17a; color: #04220f; }
+.card.no { border-color: rgba(255,46,99,.8); } .card.no .ic { background: var(--pink); color: #fff; }
+.card.help { border-color: rgba(255,214,10,.85); } .card.help .ic { background: #ffd60a; color: #2a2000; }
+.card small { display: block; font: 700 26px Inter; opacity: .75; letter-spacing: 1px; margin-top: 4px; }
+#poll { position: absolute; left: 0; right: 0; top: 640px; height: 420px; }
+.vote { position: absolute; top: 0; width: 400px; height: 400px; border-radius: 40px; text-align: center; font: 900 58px Anton; letter-spacing: 2px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 60px rgba(0,0,0,.5); border: 5px solid rgba(255,255,255,.9); }
+.vote .em { font-size: 170px; line-height: 1.05; }
+.vote.water { left: 60px; background: linear-gradient(160deg, #36c8ff, #0a58c9); }
+.vote.food { right: 60px; background: linear-gradient(160deg, #ffb347, #d9480f); }
+.vote .hint { font: 800 30px Inter; letter-spacing: 1px; margin-top: 6px; opacity: .9; }
+.vs { position: absolute; left: 50%; top: 150px; width: 120px; height: 120px; margin-left: -60px; border-radius: 50%; background: #fff; color: #111;
+  font: 900 52px/120px Anton; text-align: center; box-shadow: 0 0 40px rgba(255,255,255,.6); }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="gl" width="1080" height="1920"></canvas>
+<div id="ui">
+  <div class="shade-top"></div><div class="shade-bot"></div>
+  <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
+  <div id="tag">🌍 GEO<b>FAKTEN</b> #02</div>
+  <div id="live"></div>
+  <div id="labels"></div>
+  <div id="head"></div>
+  <div id="chips"></div>
+  <div id="cap"></div>
+  <div id="cards"></div>
+  <div id="poll"></div>
+  <div id="cta"></div>
+  <div id="hand">👆</div>
+</div>
+<script type="module" src="scene.js"></script>
+</body>
+</html>
