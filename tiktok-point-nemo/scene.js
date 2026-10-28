@@ -565,10 +565,13 @@ const track = (t, keys) => {
 const base = { alt: 0, el: 90, az: 0, fov: 50, sx: 0, sy: 0, roll: 0, near: 0.02 };
 // ?rig={...} pins the camera for stills (cover, profile picture)
 const RIG_OVERRIDE = JSON.parse(new URLSearchParams(location.search).get('rig') || 'null');
+// ?v=2: alternative intro (camera path + question hook) for a re-upload that is not a byte-identical copy
+const V2 = new URLSearchParams(location.search).get('v') === '2';
 function rigAt(t) {
   if (RIG_OVERRIDE) return { ...base, shot: 1, ...RIG_OVERRIDE };
   if (t < C.l2) {
     const k = E.outExpo(seg(t, 0, 1.7)), k2 = E.out(seg(t, 0, C.l2 + 0.5));
+    if (V2) return { ...base, shot: 1, lat: lerp(-70, -30, k2), lon: lerp(-250, -112, k2), dist: lerp(14, 4.15, k), sy: -0.03, roll: lerp(30, 4, k), near: 0.05 };
     return { ...base, shot: 1, lat: lerp(28, -30, k2), lon: lerp(25, -112, k2), dist: lerp(12, 4.15, k), sy: -0.03, roll: lerp(-28, -3, k), near: 0.05 };
   }
   if (t < C.l3) {
@@ -647,7 +650,7 @@ const fmt = n => n.toLocaleString('de-DE');
 const emo = s => s.replace(/(\p{Extended_Pictographic}️?)/gu, '<span style="-webkit-text-fill-color:initial">$1</span>');
 const typed = (s, k) => s.slice(0, Math.round(s.length * clamp(k))) + (k > 0 && k < 1 ? '▌' : '');
 const HEADS = [
-  { t0: 0, t1: C.l2, html: () => '<div class="h1">DER EINSAMSTE<br><span class="big">ORT DER WELT</span></div>' },
+  { t0: 0, t1: C.l2, html: () => V2 ? '<div class="h2">KENNST DU</div><div class="h1">DEN EINSAMSTEN<br>ORT DER WELT?</div>' : '<div class="h1">DER EINSAMSTE<br><span class="big">ORT DER WELT</span></div>' },
   { t0: C.point, t1: C.l3, html: t => `<div class="h1 red"><span class="big">POINT NEMO</span></div><div class="h2">${typed('48°52′S · 123°23′W', seg(t, C.mitten - 0.4, C.mitten + 0.5))}&nbsp;</div>` },
   { t0: C.l3, t1: C.ueber, html: () => '<div class="h1">NÄCHSTES<br>LAND?</div>' },
   { t0: C.ueber, t1: C.l4, html: t => `<div class="h1"><span class="big">${fmt(Math.round(2688 * E.out(seg(t, C.ueber, C.weg + 0.25))))} KM</span></div><div class="h2${t > C.richtung ? ' red' : ''}">${t > C.richtung ? 'IN JEDE RICHTUNG' : 'BIS ZUM NÄCHSTEN LAND'}</div>` },

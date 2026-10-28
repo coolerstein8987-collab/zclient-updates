@@ -93,8 +93,11 @@ def noise(d):
     return rng.standard_normal(int(d * SR))
 
 
+TRANSPOSE = int(os.environ.get("TRANSPOSE", 0))
+
+
 def note(n):
-    return 440 * 2 ** ((n - 69) / 12)
+    return 440 * 2 ** ((n + TRANSPOSE - 69) / 12)
 
 
 # ------------------------------------------------------------------ SFX
@@ -256,7 +259,7 @@ def sfx_tap():
 
 
 # ------------------------------------------------------------------ music
-BPM = 120
+BPM = int(os.environ.get("BPM", 120))
 BEAT = 60 / BPM
 L2, L3, L4, L5, L6, L7, IMPACT = (CUE[k] for k in ("l2", "l3", "l4", "l5", "l6", "l7", "impact"))
 CHORDS = [[50, 53, 57, 62], [46, 50, 53, 58], [43, 46, 50, 55], [45, 49, 52, 57]]  # Dm Bb Gm A
