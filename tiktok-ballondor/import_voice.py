@@ -75,7 +75,35 @@ def main():
     if len(segs) > need:  # breaths inside a phrase: merge where the lengths fit the script best
         segs = merge_to_phrases(segs, phrase_syllables())
     if len(segs) != need:
-        sys.exit(f"found {len(segs)} phrases, expected {need}: {segs}")
+        # fewer pauses than phrases: group segments into lines so durations best match each line's syllables
+        import numpy as _np
+        from build_timeline import syllables
+        lw = [sum(syllables(w) for w in l.split()) for l in LINES]
+        dur = [b_ - a_ for a_, b_ in segs]
+        n, m = len(segs), len(LINES)
+        tot_d, tot_w = sum(dur), sum(lw)
+        INF = 1e9
+        best = [[INF] * (m + 1) for _ in range(n + 1)]; back = [[0] * (m + 1) for _ in range(n + 1)]
+        best[0][0] = 0
+        for j in range(1, m + 1):
+            for i in range(1, n + 1):
+                for k in range(j - 1, i):
+                    if best[k][j - 1] >= INF: continue
+                    c = best[k][j - 1] + abs(_np.log((sum(dur[k:i]) / tot_d) / (lw[j - 1] / tot_w)))
+                    if c < best[i][j]: best[i][j], back[i][j] = c, k
+        cuts, i = [], n
+        for j in range(m, 0, -1): cuts.append((back[i][j], i)); i = back[i][j]
+        groups = cuts[::-1]
+        for li, (k0, k1) in enumerate(groups, 1):
+            parts = []
+            for a_, b_ in segs[k0:k1]:
+                s_ = x[max(0, int((a_ - PAD[0]) * SR)):int((b_ + PAD[1]) * SR)].copy()
+                if parts: parts.append(np.zeros(int((INTRA - sum(PAD)) * SR)))
+                parts.append(s_)
+            line = np.concatenate(parts)
+            write(f"voice/v{li}.wav", line)
+            print(f"line {li}: {len(line) / SR:.2f}s ({k1 - k0} segs)")
+        return
     k = 0
     for i, n in enumerate(PHRASES_PER_LINE, 1):
         parts = []
