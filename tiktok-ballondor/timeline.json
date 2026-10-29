@@ -1,0 +1,524 @@
+{
+ "duration": 30.997,
+ "fps": 30,
+ "lines": [
+  {
+   "id": 1,
+   "text": "Harry Kane[Kein] hat gerade den Ballon d'Or gewonnen. Aber welches Land hat die meisten?",
+   "start": 0.2,
+   "end": 4.485,
+   "words": [
+    {
+     "w": "Harry",
+     "t0": 0.22,
+     "t1": 0.516,
+     "em": false
+    },
+    {
+     "w": "Kane",
+     "t0": 0.516,
+     "t1": 0.664,
+     "em": true
+    },
+    {
+     "w": "hat",
+     "t0": 0.664,
+     "t1": 0.811,
+     "em": false
+    },
+    {
+     "w": "gerade",
+     "t0": 0.811,
+     "t1": 1.255,
+     "em": false
+    },
+    {
+     "w": "den",
+     "t0": 1.255,
+     "t1": 1.403,
+     "em": false
+    },
+    {
+     "w": "Ballon",
+     "t0": 1.403,
+     "t1": 1.699,
+     "em": false
+    },
+    {
+     "w": "d'Or",
+     "t0": 1.699,
+     "t1": 1.846,
+     "em": false
+    },
+    {
+     "w": "gewonnen.",
+     "t0": 1.846,
+     "t1": 2.29,
+     "em": false
+    },
+    {
+     "w": "Aber",
+     "t0": 2.78,
+     "t1": 3.158,
+     "em": false
+    },
+    {
+     "w": "welches",
+     "t0": 3.158,
+     "t1": 3.536,
+     "em": false
+    },
+    {
+     "w": "Land",
+     "t0": 3.536,
+     "t1": 3.724,
+     "em": true
+    },
+    {
+     "w": "hat",
+     "t0": 3.724,
+     "t1": 3.913,
+     "em": false
+    },
+    {
+     "w": "die",
+     "t0": 3.913,
+     "t1": 4.102,
+     "em": false
+    },
+    {
+     "w": "meisten?",
+     "t0": 4.102,
+     "t1": 4.48,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "text": "England hat jetzt sechs.",
+   "start": 4.665,
+   "end": 5.906,
+   "words": [
+    {
+     "w": "England",
+     "t0": 4.665,
+     "t1": 5.161,
+     "em": true
+    },
+    {
+     "w": "hat",
+     "t0": 5.161,
+     "t1": 5.409,
+     "em": false
+    },
+    {
+     "w": "jetzt",
+     "t0": 5.409,
+     "t1": 5.657,
+     "em": false
+    },
+    {
+     "w": "sechs.",
+     "t0": 5.657,
+     "t1": 5.905,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "text": "Portugal, die Niederlande und Deutschland: je sieben.",
+   "start": 6.086,
+   "end": 9.21,
+   "words": [
+    {
+     "w": "Portugal,",
+     "t0": 6.126,
+     "t1": 6.756,
+     "em": false
+    },
+    {
+     "w": "die",
+     "t0": 7.066,
+     "t1": 7.233,
+     "em": false
+    },
+    {
+     "w": "Niederlande",
+     "t0": 7.233,
+     "t1": 7.903,
+     "em": false
+    },
+    {
+     "w": "und",
+     "t0": 7.903,
+     "t1": 8.071,
+     "em": false
+    },
+    {
+     "w": "Deutschland:",
+     "t0": 8.071,
+     "t1": 8.406,
+     "em": false
+    },
+    {
+     "w": "je",
+     "t0": 8.726,
+     "t1": 8.886,
+     "em": false
+    },
+    {
+     "w": "sieben.",
+     "t0": 8.886,
+     "t1": 9.206,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "text": "Brasilien? Nur fünf. Deutschland hat also mehr Ballon d'Ors als Brasilien.",
+   "start": 9.39,
+   "end": 14.197,
+   "words": [
+    {
+     "w": "Brasilien?",
+     "t0": 9.39,
+     "t1": 10.05,
+     "em": true
+    },
+    {
+     "w": "Nur",
+     "t0": 10.51,
+     "t1": 10.76,
+     "em": false
+    },
+    {
+     "w": "fünf.",
+     "t0": 10.76,
+     "t1": 11.01,
+     "em": true
+    },
+    {
+     "w": "Deutschland",
+     "t0": 11.7,
+     "t1": 12.083,
+     "em": false
+    },
+    {
+     "w": "hat",
+     "t0": 12.083,
+     "t1": 12.274,
+     "em": false
+    },
+    {
+     "w": "also",
+     "t0": 12.274,
+     "t1": 12.657,
+     "em": false
+    },
+    {
+     "w": "mehr",
+     "t0": 12.657,
+     "t1": 12.849,
+     "em": true
+    },
+    {
+     "w": "Ballon",
+     "t0": 12.849,
+     "t1": 13.232,
+     "em": false
+    },
+    {
+     "w": "d'Ors",
+     "t0": 13.232,
+     "t1": 13.423,
+     "em": false
+    },
+    {
+     "w": "als",
+     "t0": 13.423,
+     "t1": 13.615,
+     "em": false
+    },
+    {
+     "w": "Brasilien.",
+     "t0": 13.615,
+     "t1": 14.19,
+     "em": false
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "text": "Ganz oben: Argentinien und Frankreich mit je acht. Und Argentiniens acht hat ein einziger Spieler geholt: Lionel Messi.",
+   "start": 14.377,
+   "end": 21.393,
+   "words": [
+    {
+     "w": "Ganz",
+     "t0": 14.377,
+     "t1": 14.437,
+     "em": false
+    },
+    {
+     "w": "oben:",
+     "t0": 14.437,
+     "t1": 14.557,
+     "em": false
+    },
+    {
+     "w": "Argentinien",
+     "t0": 14.667,
+     "t1": 15.187,
+     "em": false
+    },
+    {
+     "w": "und",
+     "t0": 15.187,
+     "t1": 15.317,
+     "em": false
+    },
+    {
+     "w": "Frankreich",
+     "t0": 15.317,
+     "t1": 15.577,
+     "em": false
+    },
+    {
+     "w": "mit",
+     "t0": 15.577,
+     "t1": 15.707,
+     "em": false
+    },
+    {
+     "w": "je",
+     "t0": 15.707,
+     "t1": 15.837,
+     "em": false
+    },
+    {
+     "w": "acht.",
+     "t0": 15.837,
+     "t1": 15.967,
+     "em": true
+    },
+    {
+     "w": "Und",
+     "t0": 16.097,
+     "t1": 16.377,
+     "em": false
+    },
+    {
+     "w": "Argentiniens",
+     "t0": 16.377,
+     "t1": 17.497,
+     "em": false
+    },
+    {
+     "w": "acht",
+     "t0": 17.497,
+     "t1": 17.777,
+     "em": false
+    },
+    {
+     "w": "hat",
+     "t0": 17.777,
+     "t1": 18.057,
+     "em": false
+    },
+    {
+     "w": "ein",
+     "t0": 18.057,
+     "t1": 18.337,
+     "em": false
+    },
+    {
+     "w": "einziger",
+     "t0": 18.337,
+     "t1": 19.177,
+     "em": true
+    },
+    {
+     "w": "Spieler",
+     "t0": 19.177,
+     "t1": 19.737,
+     "em": false
+    },
+    {
+     "w": "geholt:",
+     "t0": 19.737,
+     "t1": 20.297,
+     "em": false
+    },
+    {
+     "w": "Lionel",
+     "t0": 20.647,
+     "t1": 21.017,
+     "em": false
+    },
+    {
+     "w": "Messi.",
+     "t0": 21.017,
+     "t1": 21.387,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "text": "Übrigens: Zum ersten Mal fand die Verleihung nicht in Frankreich statt, sondern in London.",
+   "start": 21.573,
+   "end": 26.41,
+   "words": [
+    {
+     "w": "Übrigens:",
+     "t0": 21.573,
+     "t1": 21.993,
+     "em": false
+    },
+    {
+     "w": "Zum",
+     "t0": 22.493,
+     "t1": 22.663,
+     "em": false
+    },
+    {
+     "w": "ersten",
+     "t0": 22.663,
+     "t1": 23.001,
+     "em": true
+    },
+    {
+     "w": "Mal",
+     "t0": 23.001,
+     "t1": 23.17,
+     "em": false
+    },
+    {
+     "w": "fand",
+     "t0": 23.17,
+     "t1": 23.34,
+     "em": false
+    },
+    {
+     "w": "die",
+     "t0": 23.34,
+     "t1": 23.509,
+     "em": false
+    },
+    {
+     "w": "Verleihung",
+     "t0": 23.509,
+     "t1": 24.017,
+     "em": false
+    },
+    {
+     "w": "nicht",
+     "t0": 24.017,
+     "t1": 24.186,
+     "em": false
+    },
+    {
+     "w": "in",
+     "t0": 24.186,
+     "t1": 24.355,
+     "em": false
+    },
+    {
+     "w": "Frankreich",
+     "t0": 24.355,
+     "t1": 24.694,
+     "em": false
+    },
+    {
+     "w": "statt,",
+     "t0": 24.694,
+     "t1": 24.863,
+     "em": false
+    },
+    {
+     "w": "sondern",
+     "t0": 25.003,
+     "t1": 25.563,
+     "em": false
+    },
+    {
+     "w": "in",
+     "t0": 25.563,
+     "t1": 25.843,
+     "em": false
+    },
+    {
+     "w": "London.",
+     "t0": 25.843,
+     "t1": 26.403,
+     "em": true
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "text": "Welches Land holt den nächsten? Schreib's in die Kommentare!",
+   "start": 26.59,
+   "end": 29.997,
+   "words": [
+    {
+     "w": "Welches",
+     "t0": 26.59,
+     "t1": 27.073,
+     "em": false
+    },
+    {
+     "w": "Land",
+     "t0": 27.073,
+     "t1": 27.314,
+     "em": true
+    },
+    {
+     "w": "holt",
+     "t0": 27.314,
+     "t1": 27.556,
+     "em": false
+    },
+    {
+     "w": "den",
+     "t0": 27.556,
+     "t1": 27.797,
+     "em": false
+    },
+    {
+     "w": "nächsten?",
+     "t0": 27.797,
+     "t1": 28.28,
+     "em": true
+    },
+    {
+     "w": "Schreib's",
+     "t0": 28.85,
+     "t1": 29.013,
+     "em": false
+    },
+    {
+     "w": "in",
+     "t0": 29.013,
+     "t1": 29.176,
+     "em": false
+    },
+    {
+     "w": "die",
+     "t0": 29.176,
+     "t1": 29.338,
+     "em": false
+    },
+    {
+     "w": "Kommentare!",
+     "t0": 29.338,
+     "t1": 29.99,
+     "em": true
+    }
+   ]
+  }
+ ]
+}
